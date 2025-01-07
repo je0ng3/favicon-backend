@@ -1,7 +1,7 @@
-package com.capston.favicon.infrastructure;
+package com.capstone.favicon.infrastructure;
 
 
-import com.capston.favicon.domain.domain.User;
+import com.capstone.favicon.domain.domain.User;
 
 public interface UserRepository{
     void save(User user);

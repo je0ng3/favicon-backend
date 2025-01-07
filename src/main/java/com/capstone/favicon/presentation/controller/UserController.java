@@ -1,9 +1,9 @@
-package com.capston.favicon.presentation.controller;
+package com.capstone.favicon.presentation.controller;
 
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.domain.domain.User;
-import com.capston.favicon.domain.dto.APIResponse;
-import com.capston.favicon.domain.dto.RegisterDto;
+import com.capstone.favicon.application.repository.UserService;
+import com.capstone.favicon.domain.domain.User;
+import com.capstone.favicon.domain.dto.APIResponse;
+import com.capstone.favicon.domain.dto.RegisterDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package com.capston.favicon.domain.domain;
+package com.capstone.favicon.domain.domain;
 
 
 import java.util.UUID;

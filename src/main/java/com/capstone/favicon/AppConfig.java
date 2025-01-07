@@ -1,8 +1,8 @@
-package com.capston.favicon;
+package com.capstone.favicon;
 
-import com.capston.favicon.application.UserServiceImpl;
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.infrastructure.MemoryUserRepository;
+import com.capstone.favicon.application.UserServiceImpl;
+import com.capstone.favicon.application.repository.UserService;
+import com.capstone.favicon.infrastructure.MemoryUserRepository;
 
 public class AppConfig {
 

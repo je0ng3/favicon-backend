@@ -1,8 +1,8 @@
-package com.capston.favicon.application;
+package com.capstone.favicon.application;
 
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.domain.domain.User;
-import com.capston.favicon.infrastructure.MemoryUserRepository;
+import com.capstone.favicon.application.repository.UserService;
+import com.capstone.favicon.domain.domain.User;
+import com.capstone.favicon.infrastructure.MemoryUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
