@@ -1,4 +1,4 @@
-package com.capston.favicon.infrastructure;
+package com.capston.favicon.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,3 +1,6 @@
+src/main/java/com/capston/favicon/resources/application.yml
+src/main/java/com/capston/favicon/config/SecurityConfig.java
+
 HELP.md
 .gradle
 build/
