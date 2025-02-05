@@ -1,4 +1,4 @@
-package com.capstone.favicon.application.repository;
+package com.capston.favicon.application.repository;
 
 import jakarta.servlet.http.HttpServletRequest;
 

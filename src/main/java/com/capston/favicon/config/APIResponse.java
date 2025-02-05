@@ -1,4 +1,4 @@
-package com.capstone.favicon.domain.dto;
+package com.capston.favicon.config;
 
 import lombok.Getter;
 import lombok.Setter;

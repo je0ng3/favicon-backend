@@ -1,4 +1,4 @@
-package com.capstone.favicon.domain;
+package com.capston.favicon.domain.domain;
 
 
 import jakarta.persistence.Entity;
@@ -6,7 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
 
 
 @Getter
