@@ -1,10 +1,12 @@
-package com.capstone.favicon.domain.dto;
-
+package com.capston.favicon.config;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class APIResponse<T> {
+
     private static final String SUCCESS_STATUS = "success";
     private static final String ERROR_STATUS = "error";
 
