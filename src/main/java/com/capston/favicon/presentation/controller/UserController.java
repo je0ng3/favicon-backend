@@ -2,7 +2,7 @@ package com.capston.favicon.presentation.controller;
 
 import com.capston.favicon.application.repository.UserService;
 import com.capston.favicon.domain.domain.User;
-import com.capston.favicon.domain.dto.APIResponse;
+import com.capston.favicon.config.APIResponse;
 import com.capston.favicon.domain.dto.RegisterDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
