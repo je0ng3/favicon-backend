@@ -20,4 +20,11 @@ public interface DataRepository extends JpaRepository<Data, Integer> {
     """, nativeQuery = true)
     List<Data> searchByText(@Param("keyword") String keyword);
 
+    @Query(value = """
+    SELECT * FROM datas
+    WHERE file_name ILIKE CONCAT('%', :keyword, '%')
+    AND category = :category
+    ORDER BY similarity(file_name, :keyword) DESC, created_at DESC
+    """, nativeQuery = true)
+    List<Data> searchWithCategory(@Param("keyword") String keyword, @Param("category") String category);
 }

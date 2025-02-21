@@ -22,4 +22,9 @@ public class DataServiceImpl implements DataService {
         return dataRepository.searchByText(text);
     }
 
+    @Override
+    public List<Data> searchWithCategory(String text, String category) {
+        return dataRepository.searchWithCategory(text, category);
+    }
+
 }

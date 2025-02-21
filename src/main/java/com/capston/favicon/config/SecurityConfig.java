@@ -18,7 +18,8 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/logout", "/data-table/search-sorted").permitAll()
+                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/logout",
+                                "/data-table/search-sorted", "/data-table/search-sorted/{category}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())

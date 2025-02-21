@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface DataService {
     List<Data> search(String text);
+    List<Data> searchWithCategory(String text, String category);
 }
