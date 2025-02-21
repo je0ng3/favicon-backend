@@ -1,6 +1,5 @@
 package com.capston.favicon.presentation.controller;
 
-import com.capston.favicon.application.repository.AuthService;
 import com.capston.favicon.application.repository.UserService;
 import com.capston.favicon.domain.domain.User;
 import com.capston.favicon.config.APIResponse;
@@ -20,8 +19,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private AuthService authService;
 
     @PostMapping("/api/users/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
@@ -41,7 +38,7 @@ public class UserController {
     @PostMapping("/api/users/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
-            authService.login(loginDto.getUsername(), loginDto.getPassword(), request);
+            userService.login(loginDto.getUsername(), loginDto.getPassword(), request);
             return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", loginDto.getUsername()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
@@ -53,7 +50,7 @@ public class UserController {
         try {
             HttpSession session = request.getSession(false);
             String username = session.getAttribute("username").toString();
-            authService.logout(request);
+            userService.logout(request);
             return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", username));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
