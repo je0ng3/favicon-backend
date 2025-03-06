@@ -41,8 +41,8 @@ public class UserController {
     @PostMapping("/api/users/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
-            authService.login(loginDto.getUsername(), loginDto.getPassword(), request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", loginDto.getUsername()));
+            authService.login(loginDto, request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", loginDto.getEmail()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }

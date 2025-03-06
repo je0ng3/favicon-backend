@@ -2,6 +2,7 @@ package com.capston.favicon.application;
 
 import com.capston.favicon.application.repository.AuthService;
 import com.capston.favicon.domain.domain.User;
+import com.capston.favicon.domain.dto.LoginDto;
 import com.capston.favicon.infrastructure.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -18,14 +19,16 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     @Override
-    public void login(String username, String password, HttpServletRequest request) {
-        User user = userRepository.findByUsername(username);
+    public void login(LoginDto loginDto, HttpServletRequest request) {
+        String email = loginDto.getEmail();
+        String password = loginDto.getPassword();
+        User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new UsernameNotFoundException(username);
+            throw new UsernameNotFoundException(email);
         }
         if (user.getPassword().equals(password)) {
             HttpSession session = request.getSession();
-            session.setAttribute("username", username);
+            session.setAttribute("email", email);
         } else {
             throw new BadCredentialsException("Wrong password");
         }
@@ -35,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        session.removeAttribute("username");
+        session.removeAttribute("email");
     }
 }
 
