@@ -23,6 +23,17 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<APIResponse<?>> deleteUser(HttpServletRequest request) {
+        try {
+            userService.delete(request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴하였습니다.", null));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
+        }
+    }
+
     @PostMapping("/api/users/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
         User user = new User();

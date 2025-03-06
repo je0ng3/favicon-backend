@@ -3,6 +3,7 @@ package com.capston.favicon.application;
 import com.capston.favicon.application.repository.UserService;
 import com.capston.favicon.domain.domain.User;
 import com.capston.favicon.infrastructure.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,13 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("아이디가 이미 존재합니다. 재확인해주세요.");
         }
         userRepository.save(user);
+    }
+
+    @Override
+    public void delete(HttpServletRequest request) {
+        String email = request.getParameter("email");
+        User user = userRepository.findByUsername(email);
+        userRepository.delete(user);
     }
 
 }
