@@ -1,7 +1,7 @@
 package com.capston.favicon.application;
 
 
-import com.capston.favicon.application.repository.DataService;
+import com.capston.favicon.application.service.DataService;
 import com.capston.favicon.domain.domain.Data;
 import com.capston.favicon.infrastructure.DataRepository;
 import lombok.RequiredArgsConstructor;

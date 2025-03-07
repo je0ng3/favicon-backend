@@ -1,6 +1,6 @@
 package com.capston.favicon.application;
 
-import com.capston.favicon.application.repository.UserService;
+import com.capston.favicon.application.service.UserService;
 import com.capston.favicon.domain.domain.User;
 import com.capston.favicon.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;

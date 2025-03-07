@@ -1,4 +1,4 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.application.service;
 
 import com.capston.favicon.domain.domain.User;
 

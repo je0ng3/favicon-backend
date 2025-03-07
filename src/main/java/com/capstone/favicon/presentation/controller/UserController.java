@@ -1,7 +1,7 @@
 package com.capston.favicon.presentation.controller;
 
-import com.capston.favicon.application.repository.AuthService;
-import com.capston.favicon.application.repository.UserService;
+import com.capston.favicon.application.service.AuthService;
+import com.capston.favicon.application.service.UserService;
 import com.capston.favicon.domain.domain.User;
 import com.capston.favicon.config.APIResponse;
 import com.capston.favicon.domain.dto.LoginDto;
