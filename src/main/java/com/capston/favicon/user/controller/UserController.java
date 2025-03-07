@@ -1,11 +1,11 @@
-package com.capston.favicon.presentation.controller;
+package com.capston.favicon.user.controller;
 
-import com.capston.favicon.application.repository.AuthService;
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.domain.domain.User;
+import com.capston.favicon.user.application.service.AuthService;
+import com.capston.favicon.user.application.service.UserService;
+import com.capston.favicon.user.domain.User;
 import com.capston.favicon.config.APIResponse;
-import com.capston.favicon.domain.dto.LoginDto;
-import com.capston.favicon.domain.dto.RegisterDto;
+import com.capston.favicon.user.dto.LoginDto;
+import com.capston.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/api/users/register")
+    @PostMapping("/users/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
         User user = new User();
         user.setUsername(registerDto.getUsername());
@@ -38,7 +38,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/api/users/login")
+    @PostMapping("/users/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
             authService.login(loginDto, request);
@@ -48,7 +48,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/api/users/logout")
+    @PostMapping("/users/logout")
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
             HttpSession session = request.getSession(false);

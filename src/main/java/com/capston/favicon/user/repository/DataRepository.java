@@ -1,4 +1,4 @@
-package com.capston.favicon.user.infrastructure;
+package com.capston.favicon.user.repository;
 
 
 import com.capston.favicon.user.domain.Data;

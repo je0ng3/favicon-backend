@@ -1,6 +1,6 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.user.application.service;
 
-import com.capston.favicon.domain.dto.LoginDto;
+import com.capston.favicon.user.dto.LoginDto;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {

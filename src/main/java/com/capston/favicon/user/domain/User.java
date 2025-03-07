@@ -1,4 +1,4 @@
-package com.capston.favicon.domain.domain;
+package com.capston.favicon.user.domain;
 
 
 import jakarta.persistence.Entity;
