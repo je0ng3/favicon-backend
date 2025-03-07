@@ -18,9 +18,9 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/email-check", "code-check", "/register",
-                                "/login", "/logout",
-                                "/data-table/search-sorted", "/data-table/search-sorted/{category}",
+                        .requestMatchers("/user/email-check", "/user/code-check", "user/register",
+                                "/user/login", "/user/logout",
+                                "/data-set/search-sorted", "/data-set/search-sorted/{category}",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )

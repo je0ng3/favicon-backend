@@ -19,7 +19,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/email-check")
+    @PostMapping("/user/email-check")
     public ResponseEntity<APIResponse<?>> emailCheck(@RequestBody RegisterDto.checkEmail checkEmail) {
         try {
             userService.sendCode(checkEmail);
@@ -29,7 +29,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/code-check")
+    @PostMapping("/user/code-check")
     public ResponseEntity<APIResponse<?>> checkCode(@RequestBody RegisterDto.checkCode checkCode) {
         try {
             userService.checkCode(checkCode);
@@ -39,7 +39,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/user/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
         try {
             userService.join(registerDto);
@@ -50,7 +50,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/login")
+    @PostMapping("/user/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
             userService.login(loginDto, request);
@@ -60,7 +60,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/user/logout")
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
             HttpSession session = request.getSession(false);

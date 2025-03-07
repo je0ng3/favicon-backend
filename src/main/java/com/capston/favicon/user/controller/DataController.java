@@ -17,7 +17,7 @@ public class DataController {
     @Autowired
     private DataService dataService;
 
-    @GetMapping("/data-table/search-sorted")
+    @GetMapping("/data-set/search-sorted")
     public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
         try {
             List<Data> dataList = dataService.search(searchDto.getText());
@@ -28,7 +28,7 @@ public class DataController {
         }
     }
 
-    @GetMapping("/data-table/search-sorted/{category}")
+    @GetMapping("/data-set/search-sorted/{category}")
     public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
         try {
             List<Data> dataList = dataService.searchWithCategory(searchDto.getText(), category);
