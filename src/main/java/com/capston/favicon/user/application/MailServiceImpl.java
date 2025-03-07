@@ -1,6 +1,6 @@
-package com.capston.favicon.application;
+package com.capston.favicon.user.application;
 
-import com.capston.favicon.application.repository.MailService;
+import com.capston.favicon.user.application.service.MailService;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.user.application.service;
 
 public interface RedisService {
     void setCode(String email, String code);

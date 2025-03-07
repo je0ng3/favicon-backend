@@ -1,7 +1,7 @@
-package com.capston.favicon.infrastructure;
+package com.capston.favicon.user.repository;
 
 
-import com.capston.favicon.domain.domain.Data;
+import com.capston.favicon.user.domain.Data;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

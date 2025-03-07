@@ -1,4 +1,4 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.user.application.service;
 
 public interface OTPService {
     String generateOTP(String email);

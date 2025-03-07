@@ -1,7 +1,7 @@
-package com.capston.favicon.application;
+package com.capston.favicon.user.application;
 
-import com.capston.favicon.application.repository.OTPService;
-import com.capston.favicon.application.repository.RedisService;
+import com.capston.favicon.user.application.service.OTPService;
+import com.capston.favicon.user.application.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

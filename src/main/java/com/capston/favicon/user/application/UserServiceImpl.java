@@ -1,12 +1,12 @@
-package com.capston.favicon.application;
+package com.capston.favicon.user.application;
 
-import com.capston.favicon.application.repository.MailService;
-import com.capston.favicon.application.repository.OTPService;
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.domain.domain.User;
-import com.capston.favicon.domain.dto.LoginDto;
-import com.capston.favicon.domain.dto.RegisterDto;
-import com.capston.favicon.infrastructure.UserRepository;
+import com.capston.favicon.user.application.service.MailService;
+import com.capston.favicon.user.application.service.OTPService;
+import com.capston.favicon.user.application.service.UserService;
+import com.capston.favicon.user.domain.User;
+import com.capston.favicon.user.dto.LoginDto;
+import com.capston.favicon.user.dto.RegisterDto;
+import com.capston.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Random;
 
 
 @RequiredArgsConstructor

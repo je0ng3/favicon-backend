@@ -1,6 +1,6 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.user.application.service;
 
-import com.capston.favicon.domain.domain.Data;
+import com.capston.favicon.user.domain.Data;
 
 import java.util.List;
 
