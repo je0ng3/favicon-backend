@@ -23,7 +23,7 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
-    @DeleteMapping("/delete-account")
+    @DeleteMapping("/users/delete-account")
     public ResponseEntity<APIResponse<?>> deleteUser(HttpServletRequest request) {
         try {
             userService.delete(request);
@@ -34,7 +34,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/api/users/register")
+    @PostMapping("/users/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
         User user = new User();
         user.setUsername(registerDto.getUsername());
@@ -49,7 +49,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/api/users/login")
+    @PostMapping("/users/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
             authService.login(loginDto.getUsername(), loginDto.getPassword(), request);
@@ -59,7 +59,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/api/users/logout")
+    @PostMapping("/users/logout")
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
             HttpSession session = request.getSession(false);
