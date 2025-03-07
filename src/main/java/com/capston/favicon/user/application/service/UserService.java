@@ -1,6 +1,6 @@
-package com.capston.favicon.application.repository;
+package com.capston.favicon.user.application.service;
 
-import com.capston.favicon.domain.domain.User;
+import com.capston.favicon.user.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface UserService {

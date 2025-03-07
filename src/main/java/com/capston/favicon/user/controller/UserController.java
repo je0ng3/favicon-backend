@@ -1,11 +1,11 @@
-package com.capston.favicon.presentation.controller;
+package com.capston.favicon.user.controller;
 
-import com.capston.favicon.application.repository.AuthService;
-import com.capston.favicon.application.repository.UserService;
-import com.capston.favicon.domain.domain.User;
+import com.capston.favicon.user.application.service.AuthService;
+import com.capston.favicon.user.application.service.UserService;
+import com.capston.favicon.user.domain.User;
 import com.capston.favicon.config.APIResponse;
-import com.capston.favicon.domain.dto.LoginDto;
-import com.capston.favicon.domain.dto.RegisterDto;
+import com.capston.favicon.user.dto.LoginDto;
+import com.capston.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

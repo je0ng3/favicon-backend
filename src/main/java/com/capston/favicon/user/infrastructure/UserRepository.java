@@ -1,6 +1,6 @@
-package com.capston.favicon.infrastructure;
+package com.capston.favicon.user.infrastructure;
 
-import com.capston.favicon.domain.domain.User;
+import com.capston.favicon.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
