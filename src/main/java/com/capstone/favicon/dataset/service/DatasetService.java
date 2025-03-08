@@ -1,7 +1,7 @@
-package com.capstone.favicon.Dataset.service;
+package com.capstone.favicon.dataset.service;
 
-import com.capstone.favicon.Dataset.domain.Dataset;
-import com.capstone.favicon.Dataset.repository.DatasetRepository;
+import com.capstone.favicon.dataset.domain.Dataset;
+import com.capstone.favicon.dataset.repository.DatasetRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

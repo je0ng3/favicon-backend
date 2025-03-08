@@ -1,13 +1,13 @@
-package com.capstone.favicon.Dataset.controller;
+package com.capstone.favicon.dataset.controller;
 
-import com.capstone.favicon.Dataset.domain.Dataset;
-import com.capstone.favicon.Dataset.service.DatasetService;
+import com.capstone.favicon.dataset.domain.Dataset;
+import com.capstone.favicon.dataset.service.DatasetService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dataset")
+@RequestMapping("/data-set")
 public class DatasetController {
 
     private final DatasetService datasetService;

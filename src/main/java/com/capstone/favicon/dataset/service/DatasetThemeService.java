@@ -1,7 +1,7 @@
-package com.capstone.favicon.Dataset.service;
+package com.capstone.favicon.dataset.service;
 
-import com.capstone.favicon.Dataset.domain.DatasetTheme;
-import com.capstone.favicon.Dataset.repository.DatasetThemeRepository;
+import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +68,6 @@ public class DatasetThemeService {
         long environmentCount = datasetThemeRepository.countByTheme("환경");
         long diseaseCount = datasetThemeRepository.countByTheme("질병");
 
-        // 비중 계산
         double climateRatio = (double) climateCount / total;
         double environmentRatio = (double) environmentCount / total;
         double diseaseRatio = (double) diseaseCount / total;

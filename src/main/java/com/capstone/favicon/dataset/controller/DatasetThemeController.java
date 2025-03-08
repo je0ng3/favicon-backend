@@ -1,7 +1,7 @@
-package com.capstone.favicon.Dataset.controller;
+package com.capstone.favicon.dataset.controller;
 
-import com.capstone.favicon.Dataset.domain.DatasetTheme;
-import com.capstone.favicon.Dataset.service.DatasetThemeService;
+import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.service.DatasetThemeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dataset")
+@RequestMapping("/data-set")
 public class DatasetThemeController {
 
     private final DatasetThemeService datasetThemeService;
