@@ -1,4 +1,4 @@
-package com.capston.favicon.user.application.service;
+package com.capstone.favicon.user.application.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -1,4 +1,4 @@
-package com.capston.favicon;
+package com.capstone.favicon;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

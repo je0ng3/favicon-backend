@@ -1,8 +1,8 @@
-package com.capston.favicon.user.application;
+package com.capstone.favicon.user.application;
 
-import com.capston.favicon.user.application.service.AuthService;
-import com.capston.favicon.user.domain.User;
-import com.capston.favicon.user.infrastructure.UserRepository;
+import com.capstone.favicon.user.application.service.AuthService;
+import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.infrastructure.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

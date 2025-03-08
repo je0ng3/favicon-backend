@@ -1,11 +1,11 @@
-package com.capston.favicon.user.dto;
+package com.capstone.favicon.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginDto {
+public class RegisterDto {
     private String username;
     private String password;
 }
