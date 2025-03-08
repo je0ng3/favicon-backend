@@ -1,6 +1,6 @@
-package com.capstone.favicon.dataset.repository;
+package com.capston.favicon.dataset.repository;
 
-import com.capstone.favicon.dataset.domain.Dataset;
+import com.capston.favicon.dataset.domain.Dataset;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
