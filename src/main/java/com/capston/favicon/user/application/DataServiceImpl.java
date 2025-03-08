@@ -1,9 +1,9 @@
-package com.capston.favicon.application;
+package com.capston.favicon.user.application;
 
 
-import com.capston.favicon.application.repository.DataService;
-import com.capston.favicon.domain.domain.Data;
-import com.capston.favicon.infrastructure.DataRepository;
+import com.capston.favicon.user.application.service.DataService;
+import com.capston.favicon.user.domain.Data;
+import com.capston.favicon.user.repository.DataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

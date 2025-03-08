@@ -1,10 +1,10 @@
-package com.capston.favicon.presentation.controller;
+package com.capston.favicon.user.controller;
 
 
-import com.capston.favicon.application.repository.DataService;
+import com.capston.favicon.user.application.service.DataService;
 import com.capston.favicon.config.APIResponse;
-import com.capston.favicon.domain.domain.Data;
-import com.capston.favicon.domain.dto.SearchDto;
+import com.capston.favicon.user.domain.Data;
+import com.capston.favicon.user.dto.SearchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,7 @@ public class DataController {
     @Autowired
     private DataService dataService;
 
-    @GetMapping("/data-table/search-sorted")
+    @GetMapping("/data-set/search-sorted")
     public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
         try {
             List<Data> dataList = dataService.search(searchDto.getText());
@@ -28,7 +28,7 @@ public class DataController {
         }
     }
 
-    @GetMapping("/data-table/search-sorted/{category}")
+    @GetMapping("/data-set/search-sorted/{category}")
     public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
         try {
             List<Data> dataList = dataService.searchWithCategory(searchDto.getText(), category);

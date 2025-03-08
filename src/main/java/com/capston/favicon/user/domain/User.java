@@ -1,4 +1,4 @@
-package com.capston.favicon.domain.domain;
+package com.capston.favicon.user.domain;
 
 
 import jakarta.persistence.Entity;
@@ -15,6 +15,7 @@ import lombok.Setter;
 public class User {
 
     @Id
+    private String email;
     private String username;
     private String password;
 
