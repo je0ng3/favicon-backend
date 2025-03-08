@@ -9,3 +9,18 @@ spring:
     database: postgresql
     hibernate:
       ddl-auto: update
+
+  api-docs:
+    enabled: true
+    version: openapi_3_0
+    packagesToScan: mokindang.jubging
+    path: /v3/api-docs
+
+  default-consumes-media-type: application/json
+  auto-tag-classes: true
+  groups:
+    enabled: false
+
+  swagger-ui:
+    operationsSorter: method
+    path: /swagger-ui.html
