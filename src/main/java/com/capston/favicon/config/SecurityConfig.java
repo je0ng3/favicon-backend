@@ -18,8 +18,10 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/register", "/users/login", "/users/logout",
-                                "/data-set/search-sorted", "/data-set/search-sorted/{category}").permitAll()
+                        .requestMatchers("/users/email-check", "/users/code-check", "users/register",
+                                "/users/login", "/users/logout",
+                                "/data-set/search-sorted", "/data-set/search-sorted/{category}",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
