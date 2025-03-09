@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -64,9 +65,9 @@ public class UserController {
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
             HttpSession session = request.getSession(false);
-            String username = session.getAttribute("username").toString();
+            String email = session.getAttribute("email").toString();
             userService.logout(request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", username));
+            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", email));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
@@ -81,6 +82,18 @@ public class UserController {
             String message = e.getMessage();
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
         }
+    }
+
+    @GetMapping("/users/session-check")
+    public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
+        try {
+            HttpSession session = request.getSession(false);
+            String email = session.getAttribute("email").toString();
+            return ResponseEntity.ok().body(APIResponse.successAPI("로그인 상태.", email));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI("로그인 상태 아님."));
+        }
+
     }
 
 

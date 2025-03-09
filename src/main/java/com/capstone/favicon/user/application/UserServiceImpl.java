@@ -85,7 +85,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(HttpServletRequest request) {
-        String email = request.getParameter("email");
+        HttpSession session = request.getSession();
+        String email = session.getAttribute("email").toString();
         User user = userRepository.findByEmail(email);
         userRepository.delete(user);
     }
