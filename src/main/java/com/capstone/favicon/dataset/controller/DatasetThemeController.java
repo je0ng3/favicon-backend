@@ -1,7 +1,7 @@
-package com.capston.favicon.dataset.controller;
+package com.capstone.favicon.dataset.controller;
 
-import com.capston.favicon.dataset.domain.DatasetTheme;
-import com.capston.favicon.dataset.service.DatasetThemeService;
+import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.service.DatasetThemeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

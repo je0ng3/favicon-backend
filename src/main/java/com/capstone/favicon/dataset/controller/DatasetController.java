@@ -1,7 +1,7 @@
-package com.capston.favicon.dataset.controller;
+package com.capstone.favicon.dataset.controller;
 
-import com.capston.favicon.dataset.service.DatasetService;
-import com.capston.favicon.dataset.domain.Dataset;
+import com.capstone.favicon.dataset.service.DatasetService;
+import com.capstone.favicon.dataset.domain.Dataset;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,7 +1,7 @@
-package com.capston.favicon.dataset.service;
+package com.capstone.favicon.dataset.service;
 
-import com.capston.favicon.dataset.domain.DatasetTheme;
-import com.capston.favicon.dataset.repository.DatasetThemeRepository;
+import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
