@@ -12,22 +12,25 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping("/dataset")
+@RequestMapping("/data-set")
 public class s3FileDownloadController {
 
     @Autowired
     private S3FileDownloadService s3FileDownloadService;
 
-    @GetMapping("/download/{datasetId}")
+    @GetMapping(value="/download/{datasetId}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long datasetId) throws IOException {
 
         File downloadedFile = s3FileDownloadService.downloadFile(datasetId);
         Resource fileResource = new FileSystemResource(downloadedFile);
+        String fileName = downloadedFile.getName();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8" + downloadedFile.getName() + "/")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8" + fileName)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(fileResource);
     }

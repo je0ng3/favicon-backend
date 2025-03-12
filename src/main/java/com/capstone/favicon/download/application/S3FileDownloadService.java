@@ -1,7 +1,7 @@
 package com.capstone.favicon.download.application;
 
 import com.capstone.favicon.aws.application.S3Service;
-import com.capstone.favicon.dataset.application.ResourceServiceImpl;
+import com.capstone.favicon.dataset.application.ResourceService;
 import com.capstone.favicon.dataset.domain.domain.FileExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.io.IOException;
 @Service
 public class S3FileDownloadService extends S3Service{
     @Autowired
-    private ResourceServiceImpl resourceServiceImpl;
+    private ResourceService resourceService;
 
     @Value("${AWS_S3_BUCKET}")
     private String bucketName;
@@ -40,13 +40,14 @@ public class S3FileDownloadService extends S3Service{
         String downloadDir = FilePathService.getDownloadDir();
 
         // 데이터셋 ID를 기반으로 파일 URL, 확장자 가져오기
-        String fileUrl = resourceServiceImpl.getResourceUrlByDatasetId(datasetId);
-        FileExtension fileExtension = resourceServiceImpl.getFileExtensionByDatasetId(datasetId);
+        String fileUrl = resourceService.getResourceUrlByDatasetId(datasetId);
+        FileExtension fileExtension = resourceService.getFileExtensionByDatasetId(datasetId);
 
         // S3에 저장된 파일 키, 이름
         String key = extractKeyFromUrl(fileUrl);
         String fileName = extractFileNameFromKey(key);
-        File file = createFileWithExtension(downloadDir, fileName, fileExtension);
+        String encodedFileName = encodeFileName(fileName);
+        File file = createFileWithExtension(downloadDir, encodedFileName, fileExtension);
 
         // file에 내용 써서 저장
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -82,6 +83,4 @@ public class S3FileDownloadService extends S3Service{
         // String encodedFileName = encodeFileName(fileName);
         return new File(downloadDir, fileName + "." + extension.name().toLowerCase());
     }
-
-
 }
