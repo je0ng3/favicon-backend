@@ -1,5 +1,5 @@
 src/main/resources/application.yml
-src/main/java/com/capston/favicon/config/SecurityConfig.java
+src/main/java/com/capstone/favicon/config/SecurityConfig.java
 
 HELP.md
 .gradle
