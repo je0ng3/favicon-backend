@@ -19,7 +19,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/users/email-check", "/users/code-check", "users/register",
-                                "/users/login", "/users/logout",
+                                "/users/login", "/users/logout", "/users/admin-check",
                                 "/data-set/search-sorted", "/data-set/search-sorted/{category}",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()

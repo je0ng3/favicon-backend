@@ -72,5 +72,18 @@ public class UserController {
         }
     }
 
+    @GetMapping("/users/admin-check")
+    public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
+        try {
+            boolean isAdmin = userService.checkAdmin(request);
+            if (isAdmin) {
+                return ResponseEntity.ok().body(APIResponse.successAPI("관리자", null));
+            } else {
+                return ResponseEntity.ok().body(APIResponse.successAPI("일반 사용자", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
 
 }

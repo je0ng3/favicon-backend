@@ -10,4 +10,5 @@ public interface UserService {
     void join(RegisterDto registerDto);
     void login(LoginDto loginDto, HttpServletRequest request);
     void logout(HttpServletRequest request);
+    boolean checkAdmin(HttpServletRequest request);
 }
