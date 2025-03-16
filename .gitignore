@@ -47,3 +47,9 @@ out/
 
 application.properties
 application.yaml
+
+## ec2 ##
+favicon-key.pem
+
+# security
+SecurityConfig.java
