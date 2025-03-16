@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/dataset")
+@RequestMapping("/data-set")
 public class DatasetController {
 
     private final DatasetService datasetService;
