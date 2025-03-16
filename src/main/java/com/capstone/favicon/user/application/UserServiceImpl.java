@@ -89,6 +89,13 @@ public class UserServiceImpl implements UserService {
         session.removeAttribute("email");
     }
 
+    @Override
+    public void delete(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String email = session.getAttribute("email").toString();
+        User user = userRepository.findByEmail(email);
+        userRepository.delete(user);
+    }
 
     @Override
     public boolean checkAdmin(HttpServletRequest request) {
@@ -101,4 +108,5 @@ public class UserServiceImpl implements UserService {
         }
         return false;
     }
+
 }
