@@ -1,6 +1,6 @@
-package com.capstone.favicon.download.domain.domain;
+package com.capstone.favicon.download.domain;
 
-import com.capstone.favicon.dataset.domain.domain.Dataset;
+import com.capstone.favicon.dataset.domain.Dataset;
 import jakarta.persistence.*;
 
 @Entity

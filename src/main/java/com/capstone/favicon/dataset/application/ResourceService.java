@@ -1,7 +1,7 @@
 package com.capstone.favicon.dataset.application;
 
-import com.capstone.favicon.dataset.domain.domain.FileExtension;
-import com.capstone.favicon.dataset.domain.domain.Resource;
+import com.capstone.favicon.dataset.domain.FileExtension;
+import com.capstone.favicon.dataset.domain.Resource;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,7 +2,7 @@ package com.capstone.favicon.download.application;
 
 import com.capstone.favicon.aws.application.S3Service;
 import com.capstone.favicon.dataset.application.ResourceService;
-import com.capstone.favicon.dataset.domain.domain.FileExtension;
+import com.capstone.favicon.dataset.domain.FileExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

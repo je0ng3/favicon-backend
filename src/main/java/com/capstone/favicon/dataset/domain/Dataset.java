@@ -1,6 +1,6 @@
-package com.capstone.favicon.dataset.domain.domain;
+package com.capstone.favicon.dataset.domain;
 
-import com.capstone.favicon.download.domain.domain.Download;
+import com.capstone.favicon.download.domain.Download;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
