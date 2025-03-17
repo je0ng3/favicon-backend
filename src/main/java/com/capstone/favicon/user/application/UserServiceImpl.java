@@ -53,8 +53,7 @@ public class UserServiceImpl implements UserService {
         if (registerDto == null) {
             throw new RuntimeException();
         }
-        Set<String> adminEmail = Set.of("jepark2934@gmail.com", "jhoney@hanyang.ac.kr",
-                "sungwoo8763@gmail.com", "sagecandy20@gmail.com", "eae0204@naver.com");
+        Set<String> adminEmail = Set.of("test@gmail.com");
         User user = new User();
         String email = registerDto.getEmail();
         user.setEmail(email);
