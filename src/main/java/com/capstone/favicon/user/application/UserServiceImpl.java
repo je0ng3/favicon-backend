@@ -15,6 +15,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 
 @RequiredArgsConstructor
 @Service
@@ -26,8 +28,6 @@ public class UserServiceImpl implements UserService {
     private MailService mailService;
     @Autowired
     private OTPService otpService;
-
-
 
     @Override
     public void sendCode(RegisterDto.checkEmail checkEmail) {
@@ -53,10 +53,15 @@ public class UserServiceImpl implements UserService {
         if (registerDto == null) {
             throw new RuntimeException();
         }
+        Set<String> adminEmail = Set.of("test@gmail.com");
         User user = new User();
-        user.setEmail(registerDto.getEmail());
+        String email = registerDto.getEmail();
+        user.setEmail(email);
         user.setUsername(registerDto.getUsername());
         user.setPassword(registerDto.getPassword());
+        if (adminEmail.contains(email)) {
+            user.setRole(1);
+        }
         userRepository.save(user);
     }
 
@@ -89,6 +94,18 @@ public class UserServiceImpl implements UserService {
         String email = session.getAttribute("email").toString();
         User user = userRepository.findByEmail(email);
         userRepository.delete(user);
+    }
+
+    @Override
+    public boolean checkAdmin(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String email = session.getAttribute("email").toString();
+        User user = userRepository.findByEmail(email);
+        Integer role = user.getRole();
+        if (role == 1) {
+            return true;
+        }
+        return false;
     }
 
 }

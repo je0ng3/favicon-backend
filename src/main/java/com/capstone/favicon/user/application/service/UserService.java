@@ -11,4 +11,5 @@ public interface UserService {
     void login(LoginDto loginDto, HttpServletRequest request);
     void logout(HttpServletRequest request);
     void delete(HttpServletRequest request);
+    boolean checkAdmin(HttpServletRequest request);
 }
