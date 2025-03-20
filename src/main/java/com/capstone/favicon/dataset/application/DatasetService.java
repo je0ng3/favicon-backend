@@ -50,4 +50,11 @@ public class DatasetService {
         return datasetRepository.findById(datasetId);
     }
 
+    public List<Dataset> search(String text) {
+        return datasetRepository.searchByText(text);
+    }
+
+    public List<Dataset> searchWithCategory(String text, String category) {
+        return datasetRepository.searchWithCategory(text, category);
+    }
 }

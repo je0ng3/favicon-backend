@@ -1,8 +1,11 @@
 package com.capstone.favicon.dataset.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.application.DatasetService;
+import com.capstone.favicon.dataset.dto.SearchDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +49,28 @@ public class DatasetController {
     @GetMapping("/{datasetId}")
     public Optional<Dataset> getDatasetDetails(@PathVariable Long datasetId) {
         return datasetService.getDatasetDetails(datasetId);
+    }
+
+    @GetMapping("/data-set/search-sorted")
+    public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
+        try {
+            List<Dataset> dataList = datasetService.search(searchDto.getText());
+            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
+        }
+    }
+
+    @GetMapping("/data-set/search-sorted/{category}")
+    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
+        try {
+            List<Dataset> dataList = datasetService.searchWithCategory(searchDto.getText(), category);
+            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
+        }
     }
 
 }
