@@ -51,7 +51,7 @@ public class DatasetController {
         return datasetService.getDatasetDetails(datasetId);
     }
 
-    @GetMapping("/data-set/search-sorted")
+    @GetMapping("/search-sorted")
     public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
         try {
             List<Dataset> dataList = datasetService.search(searchDto.getText());
@@ -62,7 +62,7 @@ public class DatasetController {
         }
     }
 
-    @GetMapping("/data-set/search-sorted/{category}")
+    @GetMapping("/search-sorted/{category}")
     public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
         try {
             List<Dataset> dataList = datasetService.searchWithCategory(searchDto.getText(), category);
