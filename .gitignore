@@ -1,4 +1,4 @@
-src/main/resources/application.yml
+src/main/resources/application.properties
 src/main/java/com/capstone/favicon/config/SecurityConfig.java
 
 HELP.md
@@ -45,11 +45,5 @@ out/
 ### VS Code ###
 .vscode/
 
-### application ###
-application.properties
-
 ### ec2 ###
 favicon-key.pem
-
-### security ###
-SecurityConfig.java
