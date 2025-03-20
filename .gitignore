@@ -45,11 +45,11 @@ out/
 ### VS Code ###
 .vscode/
 
+### application ###
 application.properties
-application.yaml
 
-## ec2 ##
+### ec2 ###
 favicon-key.pem
 
-# security
+### security ###
 SecurityConfig.java
