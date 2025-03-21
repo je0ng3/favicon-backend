@@ -62,15 +62,15 @@ public class DatasetController {
         }
     }
 
-    @GetMapping("/search-sorted/{category}")
-    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
-        try {
-            List<Dataset> dataList = datasetService.searchWithCategory(searchDto.getText(), category);
-            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
-        } catch (Exception e) {
-            String message = e.getMessage();
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
-        }
-    }
+//    @GetMapping("/search-sorted/{category}")
+//    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
+//        try {
+//            List<Dataset> dataList = datasetService.searchWithCategory(searchDto.getText(), category);
+//            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
+//        } catch (Exception e) {
+//            String message = e.getMessage();
+//            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
+//        }
+//    }
 
 }

@@ -54,7 +54,7 @@ public class DatasetService {
         return datasetRepository.searchByText(text);
     }
 
-    public List<Dataset> searchWithCategory(String text, String category) {
-        return datasetRepository.searchWithCategory(text, category);
-    }
+//    public List<Dataset> searchWithCategory(String text, String category) {
+//        return datasetRepository.searchWithCategory(text, category);
+//    }
 }
