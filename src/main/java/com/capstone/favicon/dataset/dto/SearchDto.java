@@ -1,4 +1,4 @@
-package com.capstone.favicon.user.dto;
+package com.capstone.favicon.dataset.dto;
 
 import lombok.Getter;
 
