@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface DatasetRepository extends JpaRepository<Dataset, Long> {
     List<Dataset> findTop10ByOrderByDownloadDesc();
+    long countByDatasetTheme_DatasetThemeId(Long datasetThemeId);
+    List<Dataset> findByDatasetTheme_DatasetThemeId(Long datasetThemeId);
 
     @Query(value = """
     SELECT * FROM dataset

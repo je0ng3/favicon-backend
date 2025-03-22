@@ -46,11 +46,4 @@ public class DatasetThemeController {
         }
     }
 
-    @GetMapping("/ratio")
-    public Object getThemeRatio() {
-        return datasetThemeService.getThemeRatio();
-    }
-
 }
-
-
