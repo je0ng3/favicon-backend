@@ -30,6 +30,10 @@ public class Dataset {
     private String keyword;
     private Boolean analysis;
 
+    @ManyToOne
+    @JoinColumn(name = "dataset_theme_id", nullable = false)
+    private DatasetTheme datasetTheme;
+
     @OneToOne(mappedBy = "dataset", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Resource resource;
 

@@ -23,4 +23,3 @@ public interface DatasetThemeRepository extends JpaRepository<DatasetTheme, Long
 
     long countByTheme(String theme);
 }
-

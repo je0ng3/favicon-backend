@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -48,6 +49,36 @@ public class DatasetService {
 
     public Optional<Dataset> getDatasetDetails(Long datasetId) {
         return datasetRepository.findById(datasetId);
+    }
+
+    public Map<String, Double> getThemeRatio() {
+        long total = datasetRepository.count();
+
+        if (total == 0) {
+            return Map.of(
+                    "climate", 0.0,
+                    "environment", 0.0,
+                    "disease", 0.0
+            );
+        }
+
+        long climateCount = datasetRepository.countByDatasetTheme_DatasetThemeId(1L);
+        long environmentCount = datasetRepository.countByDatasetTheme_DatasetThemeId(2L);
+        long diseaseCount = datasetRepository.countByDatasetTheme_DatasetThemeId(3L);
+
+        double climateRatio = (double) climateCount / total;
+        double environmentRatio = (double) environmentCount / total;
+        double diseaseRatio = (double) diseaseCount / total;
+
+        return Map.of(
+                "기후", climateRatio,
+                "환경", environmentRatio,
+                "질병", diseaseRatio
+        );
+    }
+
+    public List<Dataset> getDatasetsByCategory(Long datasetThemeId) {
+        return datasetRepository.findByDatasetTheme_DatasetThemeId(datasetThemeId);
     }
 
     public List<Dataset> search(String text) {
