@@ -1,6 +1,5 @@
 package com.capstone.favicon.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +19,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/users/email-check", "/users/code-check", "users/register",
+                                "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
                                 "/users/login", "/users/logout", "/users/admin-check",
                                 "/users/delete-account", "/users/session-check",
                                 "/data-set/search-sorted", "/data-set/search-sorted/{category}",
@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
                 .sessionManagement(session -> session
+                        .sessionFixation().migrateSession()
                         .maximumSessions(1)
                 )
                 .addFilterBefore(new Utf8Filter(), UsernamePasswordAuthenticationFilter.class);

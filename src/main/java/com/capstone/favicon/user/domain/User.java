@@ -1,12 +1,8 @@
 package com.capstone.favicon.user.domain;
 
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 
 @Getter
 @Setter
@@ -15,9 +11,17 @@ import lombok.Setter;
 public class User {
 
     @Id
-    private String email;
-    private String username;
-    private String password;
-    private Integer role = 0;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    private Integer role = 0;
 }
