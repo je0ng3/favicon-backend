@@ -2,11 +2,14 @@ package com.capstone.favicon.faq.controller;
 
 import com.capstone.favicon.faq.dto.FAQRequestDto;
 import com.capstone.favicon.faq.application.FAQServiceImpl;
+import com.capstone.favicon.faq.dto.FAQResponseDto;
 import com.capstone.favicon.user.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/faq")
@@ -38,4 +41,17 @@ public class FAQController {
         faqService.deleteFAQ(faqId);
         return ResponseEntity.ok("자주묻는질문이 삭제되었습니다.");
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<FAQResponseDto>> getAllFAQs() {
+        List<FAQResponseDto> faqs = faqService.getAllFAQs();
+        return ResponseEntity.ok(faqs);
+    }
+
+    @GetMapping("/{faqId}")
+    public ResponseEntity<FAQResponseDto> getFAQById(@PathVariable Long faqId) {
+        FAQResponseDto faq = faqService.getFAQById(faqId);
+        return ResponseEntity.ok(faq);
+    }
+
 }

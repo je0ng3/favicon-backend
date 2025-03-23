@@ -21,7 +21,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/email-check", "/users/code-check", "users/register",
                                 "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
                                 "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top10",
-                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter",
+                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "faq/{faqId}",
                                 "/users/login", "/users/logout", "/users/admin-check",
                                 "/users/delete-account", "/users/session-check",
                                 "/data-set/search-sorted", "/data-set/search-sorted/{category}",

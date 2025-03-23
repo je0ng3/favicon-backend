@@ -3,6 +3,7 @@ package com.capstone.favicon.faq.application;
 import com.capstone.favicon.faq.application.service.FAQService;
 import com.capstone.favicon.faq.domain.FAQ;
 import com.capstone.favicon.faq.dto.FAQRequestDto;
+import com.capstone.favicon.faq.dto.FAQResponseDto;
 import com.capstone.favicon.faq.repository.FAQRepository;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.repository.UserRepository;
@@ -10,6 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,4 +63,18 @@ public class FAQServiceImpl implements FAQService {
         }
         return user;
     }
+
+    @Override
+    public List<FAQResponseDto> getAllFAQs() {
+        List<FAQ> faqs = faqRepository.findAll();
+        return faqs.stream().map(FAQResponseDto::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public FAQResponseDto getFAQById(Long faqId) {
+        FAQ faq = faqRepository.findById(faqId)
+                .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
+        return new FAQResponseDto(faq);
+    }
+
 }
