@@ -1,7 +1,8 @@
 package com.capstone.favicon.analysis.controller;
 
 
-import com.capstone.favicon.analysis.service.RegionService;
+import com.capstone.favicon.analysis.application.RegionServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,15 +13,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/region")
 public class RegionController {
-    private final RegionService regionService;
 
-    public RegionController(RegionService regionService) {
-        this.regionService = regionService;
-    }
+    @Autowired
+    private RegionServiceImpl regionServiceImpl;
 
     @GetMapping
     public ResponseEntity<List<String>> getAllRegions() {
-        List<String> regionNames = regionService.getAllRegionName();
+        List<String> regionNames = regionServiceImpl.getAllRegionName();
         return ResponseEntity.ok(regionNames);
     }
 }
