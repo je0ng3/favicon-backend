@@ -96,7 +96,6 @@ public class DatasetService {
      */
     public Map<String, List<String>> getDatasetNameGroupByTheme() {
         List<Dataset> dataset = datasetRepository.findAllWithTheme();
-        System.out.println("size = " + dataset.size());
 
         return dataset.stream()
                 .filter(d -> d.getDatasetTheme() != null && d.getDatasetTheme().getTheme() != null)

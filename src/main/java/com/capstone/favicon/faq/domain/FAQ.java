@@ -16,7 +16,7 @@ public class FAQ {
     private Long faqId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "userId")
+    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "user_id")
     private User user;
 
     @Enumerated(EnumType.STRING)
