@@ -39,6 +39,6 @@ public class ResourceService {
      */
     public FileExtension getFileExtensionByDatasetId(Long datasetId) {
         Optional<Resource> resource = resourceRepository.findByDatasetDatasetId(datasetId);
-        return resource.map(Resource::getType).orElse(FileExtension.txt);
+        return resource.map(Resource::getType).orElse(FileExtension.TXT);
     }
 }
