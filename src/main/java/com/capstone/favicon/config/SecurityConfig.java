@@ -1,6 +1,5 @@
 package com.capstone.favicon.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,15 +19,19 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/users/email-check", "/users/code-check", "users/register",
+                                "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
+                                "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top10",
+                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "faq/{faqId}",
                                 "/users/login", "/users/logout", "/users/admin-check",
                                 "/users/delete-account", "/users/session-check",
                                 "/data-set/search-sorted", "/data-set/search-sorted/{category}",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}").permitAll()
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}", "/data-set/group-by-theme").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
                 .sessionManagement(session -> session
+                        .sessionFixation().migrateSession()
                         .maximumSessions(1)
                 )
                 .addFilterBefore(new Utf8Filter(), UsernamePasswordAuthenticationFilter.class);
