@@ -19,12 +19,12 @@ public class S3FileDownloadService extends S3Service{
     @Autowired
     private ResourceService resourceService;
 
-    @Value("${AWS_S3_BUCKET}")
+    @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3FileDownloadService(@Value("${AWS_REGION}") String region,
-                                 @Value("${AWS_ACCESS_KEY_ID}") String accessKey,
-                                 @Value("${AWS_SECRET_ACCESS_KEY}") String secretKey) {
+    public S3FileDownloadService(@Value("${aws.s3.region}") String region,
+                                 @Value("${aws.s3.access-key}") String accessKey,
+                                 @Value("${aws.s3.secret-key}") String secretKey) {
         super(region, accessKey, secretKey);
     }
 

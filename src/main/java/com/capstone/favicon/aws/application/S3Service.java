@@ -15,13 +15,13 @@ import java.nio.charset.StandardCharsets;
 public class S3Service {
     protected final S3Client s3Client;
 
-    @Value("${AWS_S3_BUCKET}")
+    @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
     public S3Service(
-            @Value("${AWS_REGION}") String region,
-            @Value("${AWS_ACCESS_KEY_ID}") String accessKey,
-            @Value("${AWS_SECRET_ACCESS_KEY}") String secretKey) {
+            @Value("${aws.s3.region}") String region,
+            @Value("${aws.s3.access-key}") String accessKey,
+            @Value("${aws.s3.secret-key}") String secretKey) {
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
