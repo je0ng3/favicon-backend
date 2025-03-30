@@ -8,7 +8,8 @@ import java.time.YearMonth;
 @Getter
 @Setter
 public class AnalysisRequestDto {
-    private String theme;
+    private String theme1;
+    private String theme2;
     private String region;
     private YearMonth start;
     private YearMonth end;

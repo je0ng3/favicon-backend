@@ -1,4 +1,4 @@
-package com.capstone.favicon.aws.application;
+package com.capstone.favicon.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,13 +12,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class S3Service {
+public class S3Config {
     protected final S3Client s3Client;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3Service(
+    public S3Config(
             @Value("${aws.s3.region}") String region,
             @Value("${aws.s3.access-key}") String accessKey,
             @Value("${aws.s3.secret-key}") String secretKey) {

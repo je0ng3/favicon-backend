@@ -1,6 +1,6 @@
 package com.capstone.favicon.download.application;
 
-import com.capstone.favicon.aws.application.S3Service;
+import com.capstone.favicon.config.S3Config;
 import com.capstone.favicon.dataset.application.ResourceService;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 @Service
-public class S3FileDownloadService extends S3Service{
+public class S3FileDownloadService extends S3Config {
     @Autowired
     private ResourceService resourceService;
 
