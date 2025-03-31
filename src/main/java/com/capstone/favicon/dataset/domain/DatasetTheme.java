@@ -15,7 +15,6 @@ public class DatasetTheme {
     @Column(name = "dataset_theme_id")
     private Long datasetThemeId;
 
-    // private String name;
     private String theme;
     private String region;
     private Integer dataYear;
