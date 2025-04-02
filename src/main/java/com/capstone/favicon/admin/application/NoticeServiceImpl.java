@@ -34,12 +34,12 @@ public class NoticeServiceImpl implements NoticeService {
             throw new RuntimeException("세션이 존재하지 않습니다.");
         }
 
-        String email = (String) session.getAttribute("email");
-        if (email == null) {
-            throw new RuntimeException("세션에 이메일 정보가 없습니다.");
+        Long id = (Long) session.getAttribute("id");
+        if (id == null) {
+            throw new RuntimeException("세션에 로그인 정보가 없습니다.");
         }
 
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByUserId(id);
         if (user == null || user.getRole() != 1) {
             throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
         }
@@ -157,8 +157,8 @@ public class NoticeServiceImpl implements NoticeService {
 
         public User getAdminUserFromSession(HttpServletRequest request) {
             HttpSession session = request.getSession();
-            String email = (String) session.getAttribute("email");
-            User user = userRepository.findByEmail(email);
+            Long id = (Long) session.getAttribute("id");
+            User user = userRepository.findByUserId(id);
             if (user == null || user.getRole() != 1) {
                 throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
             }

@@ -30,32 +30,27 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public void addScrap(HttpServletRequest request, Long dataId) {
-        User user = findUser(request);
-        Dataset dataset = datasetRepository.getReferenceById(dataId);
+        HttpSession session = request.getSession();
+        Long userId = (Long) session.getAttribute("userId");
         Scrap scrap = new Scrap();
-        scrap.setUser(user);
-        scrap.setDataset(dataset);
+        scrap.setUserId(userId);
+        scrap.setDatasetId(dataId);
         dataRepository.save(scrap);
     }
 
     @Override
     public void deleteScrap(HttpServletRequest request, Long scrapId) {
-        User user = findUser(request);
-        Scrap scrap = dataRepository.findByScrapIdAndUser(scrapId, user);
+        HttpSession session = request.getSession();
+        Long userId = (Long) session.getAttribute("userId");
+        Scrap scrap = dataRepository.findByScrapIdAndUserId(scrapId, userId);
         dataRepository.delete(scrap);
     }
 
     @Override
     public List<Scrap> getScrap(HttpServletRequest request) {
-        User user = findUser(request);
-        return dataRepository.findAllByUser(user);
-    }
-
-    private User findUser(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String email = session.getAttribute("email").toString();
-        User user = userRepository.findByEmail(email);
-        return user;
+        Long userId = (Long) session.getAttribute("userId");
+        return dataRepository.findAllByUserId(userId);
     }
 
 }

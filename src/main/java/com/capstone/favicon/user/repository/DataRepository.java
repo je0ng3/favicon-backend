@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface DataRepository extends JpaRepository<Scrap, Long> {
-    List<Scrap> findAllByUser(User user);
-    Scrap findByScrapIdAndUser(Long scrapId, User user);
+    List<Scrap> findAllByUserId(Long userId);
+    Scrap findByScrapIdAndUserId(Long scrapId, Long userId);
 }
