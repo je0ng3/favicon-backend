@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DatasetService {
@@ -88,4 +89,18 @@ public class DatasetService {
 //    public List<Dataset> searchWithCategory(String text, String category) {
 //        return datasetRepository.searchWithCategory(text, category);
 //    }
+
+    /***
+     * theme(질병, 기후, 환경) 별 세부카테고리(감기, 미세먼지, 기온 등) 목록 조회
+     */
+    public Map<String, List<String>> getDatasetNameGroupByTheme() {
+        List<Dataset> dataset = datasetRepository.findAllWithTheme();
+
+        return dataset.stream()
+                .filter(d -> d.getDatasetTheme() != null && d.getDatasetTheme().getTheme() != null)
+                .collect(Collectors.groupingBy(
+                        d -> d.getDatasetTheme().getTheme(),
+                        Collectors.mapping(Dataset::getName, Collectors.toList())
+                ));
+    }
 }

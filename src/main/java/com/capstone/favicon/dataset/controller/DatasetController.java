@@ -6,7 +6,6 @@ import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.application.DatasetService;
 import org.springframework.http.ResponseEntity;
 import com.capstone.favicon.dataset.dto.SearchDto;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -73,6 +72,12 @@ public class DatasetController {
             String message = e.getMessage();
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
         }
+    }
+
+    @GetMapping("/group-by-theme")
+    public ResponseEntity<Map<String, List<String>>> getDatasetsGroupedByTheme() {
+        Map<String, List<String>> result = datasetService.getDatasetNameGroupByTheme();
+        return ResponseEntity.ok(result);
     }
 
 //    @GetMapping("/search-sorted/{category}")

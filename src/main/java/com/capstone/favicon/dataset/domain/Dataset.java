@@ -29,8 +29,11 @@ public class Dataset {
     private String keyword;
     private Boolean analysis;
 
+    @Column(name = "name")
+    private String name;
+
     @ManyToOne
-    @JoinColumn(name = "dataset_theme_id", nullable = false)
+    @JoinColumn(name = "dataset_theme_id", referencedColumnName = "dataset_theme_id", nullable = false)
     private DatasetTheme datasetTheme;
 
     @OneToOne(mappedBy = "dataset", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

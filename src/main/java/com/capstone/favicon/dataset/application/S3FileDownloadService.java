@@ -1,6 +1,7 @@
 package com.capstone.favicon.dataset.application;
 
 import com.capstone.favicon.config.S3Config;
+import com.capstone.favicon.dataset.application.ResourceService;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
