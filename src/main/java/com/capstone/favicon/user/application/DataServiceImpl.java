@@ -23,10 +23,6 @@ public class DataServiceImpl implements DataService {
 
     @Autowired
     private DataRepository dataRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private DatasetRepository datasetRepository;
 
     @Override
     public void addScrap(HttpServletRequest request, Long dataId) {
