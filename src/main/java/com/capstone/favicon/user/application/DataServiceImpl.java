@@ -31,7 +31,7 @@ public class DataServiceImpl implements DataService {
     @Override
     public void addScrap(HttpServletRequest request, Long dataId) {
         HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = (Long) session.getAttribute("id");
         Scrap scrap = new Scrap();
         scrap.setUserId(userId);
         scrap.setDatasetId(dataId);
@@ -41,7 +41,7 @@ public class DataServiceImpl implements DataService {
     @Override
     public void deleteScrap(HttpServletRequest request, Long scrapId) {
         HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = (Long) session.getAttribute("id");
         Scrap scrap = dataRepository.findByScrapIdAndUserId(scrapId, userId);
         dataRepository.delete(scrap);
     }
@@ -49,7 +49,7 @@ public class DataServiceImpl implements DataService {
     @Override
     public List<Scrap> getScrap(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = (Long) session.getAttribute("id");
         return dataRepository.findAllByUserId(userId);
     }
 

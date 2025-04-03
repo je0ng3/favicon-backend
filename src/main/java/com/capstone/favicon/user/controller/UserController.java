@@ -64,10 +64,8 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
-            HttpSession session = request.getSession(false);
-            String email = session.getAttribute("email").toString();
             userService.logout(request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", email));
+            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
@@ -88,8 +86,8 @@ public class UserController {
     public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
         try {
             HttpSession session = request.getSession(false);
-            String email = session.getAttribute("email").toString();
-            return ResponseEntity.ok().body(APIResponse.successAPI("로그인 상태.", email));
+            Long id = (Long) session.getAttribute("id");
+            return ResponseEntity.ok().body(APIResponse.successAPI("로그인 상태.", id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI("로그인 상태 아님."));
         }
