@@ -2,7 +2,6 @@ package com.capstone.favicon.dataset.application;
 
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
-import com.capstone.favicon.dataset.domain.dto.DatasetThemeDto;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
 import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import jakarta.transaction.Transactional;

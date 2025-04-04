@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@CrossOrigin(origins = "*")
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @PostMapping("/users/email-check")
+    @PostMapping("/email-check")
     public ResponseEntity<APIResponse<?>> emailCheck(@RequestBody RegisterDto.checkEmail checkEmail) {
         try {
             userService.sendCode(checkEmail);
@@ -30,7 +30,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/code-check")
+    @PostMapping("/code-check")
     public ResponseEntity<APIResponse<?>> checkCode(@RequestBody RegisterDto.checkCode checkCode) {
         try {
             userService.checkCode(checkCode);
@@ -40,7 +40,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/register")
+    @PostMapping("/register")
     public ResponseEntity<APIResponse<?>> register(@RequestBody RegisterDto registerDto) {
         try {
             userService.join(registerDto);
@@ -51,7 +51,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/users/login")
+    @PostMapping("/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
             userService.login(loginDto, request);
@@ -61,19 +61,17 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/logout")
+    @PostMapping("/logout")
     public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
         try {
-            HttpSession session = request.getSession(false);
-            String email = session.getAttribute("email").toString();
             userService.logout(request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", email));
+            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
     }
 
-    @DeleteMapping("/users/delete-account")
+    @DeleteMapping("/delete-account")
     public ResponseEntity<APIResponse<?>> deleteUser(HttpServletRequest request) {
         try {
             userService.delete(request);
@@ -84,19 +82,19 @@ public class UserController {
         }
     }
 
-    @GetMapping("/users/session-check")
+    @GetMapping("/session-check")
     public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
         try {
             HttpSession session = request.getSession(false);
-            String email = session.getAttribute("email").toString();
-            return ResponseEntity.ok().body(APIResponse.successAPI("로그인 상태.", email));
+            Long id = (Long) session.getAttribute("id");
+            return ResponseEntity.ok().body(APIResponse.successAPI("로그인 상태.", id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI("로그인 상태 아님."));
         }
 
     }
 
-    @GetMapping("/users/admin-check")
+    @GetMapping("/admin-check")
     public ResponseEntity<APIResponse<?>> checkAdmin(HttpServletRequest request) {
         try {
             boolean isAdmin = userService.checkAdmin(request);

@@ -4,10 +4,8 @@ import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.application.DatasetService;
-import com.capstone.favicon.dataset.domain.dto.DatasetThemeDto;
 import org.springframework.http.ResponseEntity;
 import com.capstone.favicon.dataset.dto.SearchDto;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
