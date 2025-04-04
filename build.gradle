@@ -17,6 +17,18 @@ repositories {
 	mavenCentral()
 }
 
+springBoot {
+	mainClass = 'com.capstone.favicon.FaviconApplication'
+}
+
+bootJar {
+	archiveFileName = 'app.jar'
+}
+
+jar {
+	enabled = false
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
