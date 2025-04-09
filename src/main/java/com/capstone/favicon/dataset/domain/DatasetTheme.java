@@ -19,4 +19,8 @@ public class DatasetTheme {
     private String region;
     private Integer dataYear;
     private String fileType;
+
+    public Long getId() {
+        return datasetThemeId;
+    }
 }

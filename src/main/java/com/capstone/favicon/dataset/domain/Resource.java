@@ -4,6 +4,7 @@ import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,14 +23,22 @@ public class Resource {
     private String resourceName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "resource_type", nullable = false)
+    @Column(name = "resource_type", nullable = true)
     private FileExtension type;
 
     @Column(name = "resource_url", nullable = false)
     private String resourceUrl;
 
-    @JsonIgnore
-    @OneToOne
-    @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id", nullable = false) // FK
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id", nullable = false)
     private Dataset dataset;
+
+    public Resource(Dataset dataset, String resourceName, FileExtension type, String resourceUrl) {
+        this.dataset = dataset;
+        this.resourceName = resourceName;
+        this.type = type;
+        this.resourceUrl = resourceUrl;
+    }
+
+    public Resource() {}
 }
