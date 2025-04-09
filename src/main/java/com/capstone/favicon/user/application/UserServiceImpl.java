@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
         }
         if (user.getPassword().equals(password)) {
             HttpSession session = request.getSession();
-            session.setAttribute("email", email);
+            session.setAttribute("id", user.getUserId());
         } else {
             throw new BadCredentialsException("Wrong password");
         }
@@ -85,22 +85,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        session.removeAttribute("email");
+        session.removeAttribute("id");
     }
 
     @Override
     public void delete(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String email = session.getAttribute("email").toString();
-        User user = userRepository.findByEmail(email);
+        Long id = (Long) session.getAttribute("id");
+        User user = userRepository.findByUserId(id);
         userRepository.delete(user);
     }
 
     @Override
     public boolean checkAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String email = session.getAttribute("email").toString();
-        User user = userRepository.findByEmail(email);
+        Long id = (Long) session.getAttribute("id");
+        User user = userRepository.findByUserId(id);
         Integer role = user.getRole();
         if (role == 1) {
             return true;
