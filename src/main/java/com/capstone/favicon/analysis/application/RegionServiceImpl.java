@@ -2,6 +2,7 @@ package com.capstone.favicon.analysis.application;
 
 import com.capstone.favicon.analysis.application.service.RegionService;
 import com.capstone.favicon.analysis.repository.RegionRepository;
+import com.capstone.favicon.dataset.domain.Dataset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.capstone.favicon.analysis.domain.Region;
@@ -16,9 +17,7 @@ public class RegionServiceImpl implements RegionService {
     private RegionRepository regionRepository;
 
     @Override
-    public List<String> getAllRegionName() {
-        return regionRepository.findAll().stream()
-                .map(Region::getRegionName)
-                .collect(Collectors.toList());
+    public List<Region> getAllRegions() {
+        return regionRepository.findAll();
     }
 }

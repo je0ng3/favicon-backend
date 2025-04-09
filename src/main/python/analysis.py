@@ -7,10 +7,10 @@ from sqlalchemy import create_engine
 
 # PostgreSQL 연결 정보: test db
 DB_CONFIG = {
-    'dbname': 'database',
-    'user': 'dev',
-    'password': 'dev',
-    'host': 'localhost',
+    'dbname': 'favicon_db',
+    'user': 'favicon',
+    'password': 'favicon2024',
+    'host': 'favicon-database.c5q6se0mu4pm.ap-northeast-2.rds.amazonaws.com',
     'port': '5432'
 }
 
@@ -209,7 +209,7 @@ class Visualize:
             ),
             legend=dict(x=0, y=1.15, orientation="h")
         )
-        fig.show(renderer="browser")
+        #fig.show(renderer="browser")
         return fig.to_json()
 
 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     # 데이터 삽입
     try:
         inserter = DataInsert()
-        inserter.insert_data("../resources/기상청_월별_processed.csv", "../resources/기후_감기_건강보험심사평가원.csv")
+        inserter.insert_data("resources/기상청_월별_processed.csv", "resources/기후_감기_건강보험심사평가원.csv")
     except Exception as e:
         print("insert data 실패:", e)
 

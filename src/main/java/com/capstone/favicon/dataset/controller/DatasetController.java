@@ -49,7 +49,7 @@ public class DatasetController {
         return datasetService.getTotalDatasetCount();
     }
 
-    @GetMapping("/{datasetId}")
+    @GetMapping("/{datasetId:\\d+}")
     public Optional<Dataset> getDatasetDetails(@PathVariable Long datasetId) {
         return datasetService.getDatasetDetails(datasetId);
     }
