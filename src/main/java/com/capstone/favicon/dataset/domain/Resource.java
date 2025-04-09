@@ -2,6 +2,7 @@ package com.capstone.favicon.dataset.domain;
 
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.FileExtension;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class Resource {
     private String resourceUrl;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id", nullable = false) // FK
+    @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id", nullable = false)
     private Dataset dataset;
 
     public Resource(Dataset dataset, String resourceName, FileExtension type, String resourceUrl) {

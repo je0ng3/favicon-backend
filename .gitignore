@@ -51,3 +51,9 @@ favicon-key.pem
 
 application.properties
 SecurityConfig.java
+requirement.txt
+기상청_월별_processed.csv
+기후_감기_건강보험심사평가원.csv
+venv
+ubuntu@ec2-54-180-238-119.ap-northeast-2.compute.amazonaws.com
+python

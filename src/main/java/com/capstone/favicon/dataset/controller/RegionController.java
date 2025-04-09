@@ -2,6 +2,7 @@ package com.capstone.favicon.dataset.controller;
 
 
 import com.capstone.favicon.dataset.application.RegionServiceImpl;
+import com.capstone.favicon.dataset.domain.Region;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +19,8 @@ public class RegionController {
     private RegionServiceImpl regionServiceImpl;
 
     @GetMapping
-    public ResponseEntity<List<String>> getAllRegions() {
-        List<String> regionNames = regionServiceImpl.getAllRegionName();
-        return ResponseEntity.ok(regionNames);
+    public ResponseEntity<List<Region>> getAllRegions() {
+        List<Region> regions = regionServiceImpl.getAllRegions();
+        return ResponseEntity.ok(regions);
     }
 }
