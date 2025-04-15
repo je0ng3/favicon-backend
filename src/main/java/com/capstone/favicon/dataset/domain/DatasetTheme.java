@@ -12,15 +12,15 @@ public class DatasetTheme {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "dataset_theme_id")
     private Long datasetThemeId;
 
-    @ManyToOne
-    @JoinColumn(name = "dataset_id", nullable = false)
-    private Dataset dataset;
-
-    private String name;
     private String theme;
     private String region;
     private Integer dataYear;
     private String fileType;
+
+    public Long getId() {
+        return datasetThemeId;
+    }
 }

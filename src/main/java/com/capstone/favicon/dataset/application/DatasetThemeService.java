@@ -53,32 +53,4 @@ public class DatasetThemeService {
         return datasetThemeRepository.count();
     }
 
-    public Object getThemeRatio() {
-        long total = getTotalDatasetCount();
-
-        if (total == 0) {
-            return new Object() {
-                public final double climate = 0.0;
-                public final double environment = 0.0;
-                public final double disease = 0.0;
-            };
-        }
-
-        long climateCount = datasetThemeRepository.countByTheme("기후");
-        long environmentCount = datasetThemeRepository.countByTheme("환경");
-        long diseaseCount = datasetThemeRepository.countByTheme("질병");
-
-        double climateRatio = (double) climateCount / total;
-        double environmentRatio = (double) environmentCount / total;
-        double diseaseRatio = (double) diseaseCount / total;
-
-        return new Object() {
-            public final double climate = climateRatio;
-            public final double environment = environmentRatio;
-            public final double disease = diseaseRatio;
-        };
-    }
-
 }
-
-

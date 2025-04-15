@@ -1,4 +1,4 @@
-package com.capstone.favicon.download.application;
+package com.capstone.favicon.dataset.application;
 
 import java.nio.file.Paths;
 

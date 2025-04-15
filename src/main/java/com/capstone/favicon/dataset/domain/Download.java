@@ -1,9 +1,14 @@
-package com.capstone.favicon.download.domain;
+package com.capstone.favicon.dataset.domain;
 
-import com.capstone.favicon.dataset.domain.Dataset;
+import com.capstone.favicon.user.domain.User;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
+@Table(name="download")
 public class Download {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,6 +19,7 @@ public class Download {
     @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id")
     private Dataset dataset;
 
-    @Column(name = "user_id")
-    private Long userId; //user domain이 생기면 FK로 변경 필요
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
