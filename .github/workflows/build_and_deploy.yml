@@ -7,24 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@4
-
-      - name: Set up Docker Compose
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
-          echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> $GITHUB_ENV
-          echo "RDS_HOSTNAME=${{ secrets.RDS_HOSTNAME }}" >> $GITHUB_ENV
-          echo "RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> $GITHUB_ENV
-          echo "RDS_PORT=${{ secrets.RDS_PORT }}" >> $GITHUB_ENV
-          echo "RDS_USERNAME=${{ secrets.RDS_USERNAME }}" >> $GITHUB_ENV        
-
   test:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +31,24 @@ jobs:
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
 
-  upload-to-docker-hub:
+  setup:
     needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@4
+      - name: Set up Docker Compose
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> $GITHUB_ENV
+          echo "RDS_HOSTNAME=${{ secrets.RDS_HOSTNAME }}" >> $GITHUB_ENV
+          echo "RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> $GITHUB_ENV
+          echo "RDS_PORT=${{ secrets.RDS_PORT }}" >> $GITHUB_ENV
+          echo "RDS_USERNAME=${{ secrets.RDS_USERNAME }}" >> $GITHUB_ENV     
+
+  upload-to-docker-hub:
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
@@ -86,6 +85,6 @@ jobs:
             export SPRING_PROFILES_ACTIVE=prod
             sudo docker-compose stop
             sudo docker-compose rm -f
-            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/erica-favicon:latest
+            sudo docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/erica-favicon:latest
             sudo docker-compose pull
             sudo docker-compose up -d
