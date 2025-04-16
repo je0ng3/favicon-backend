@@ -25,7 +25,7 @@ public class S3Config {
     private String bucketName;
 
     public S3Config(
-            @Value("${aws.s3.region}") String region,
+            @Value("${AWS_REGION}") String region,
             @Value("${aws.s3.access-key}") String accessKey,
             @Value("${aws.s3.secret-key}") String secretKey) {
         this.region = region;

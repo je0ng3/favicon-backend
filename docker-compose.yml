@@ -1,0 +1,57 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+    networks:
+      - backend-network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: favicon
+      POSTGRES_PASSWORD: favicon
+      POSTGRES_DB: favicon
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RDS_HOSTNAME=${RDS_HOSTNAME}
+      - RDS_PASSWORD=${RDS_PASSWORD}
+      - RDS_PORT=${RDS_PORT}
+      - RDS_USERNAME=${RDS_USERNAME}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    networks:
+      - backend-network
+    depends_on:
+      - postgres
+      - redis
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  db-data:
