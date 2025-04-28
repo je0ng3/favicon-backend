@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  deployment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,21 +31,8 @@ jobs:
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
 
-  setup:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@4
       - name: Generate .env
         run: echo "${{ secrets.ENV }}" > .env
-
-  upload-to-docker-hub:
-    needs: setup
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Build Docker image
         run: |
@@ -63,11 +50,6 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME}}/erica-favicon
 
-  deploy-to-EC2:
-    needs: upload-to-docker-hub
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
