@@ -2,6 +2,7 @@
 /src/main/java/com/capstone/favicon/config/SecurityConfig.java
 /src/main/java/com/capstone/favicon/config/CorsConfig.java
 /org
+.env
 
 HELP.md
 .gradle
