@@ -3,6 +3,7 @@ package com.capstone.favicon.user.application;
 import com.capstone.favicon.user.application.service.MailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -14,11 +15,11 @@ import org.thymeleaf.context.Context;
 public class MailServiceImpl implements MailService {
 
     private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine;
+    private final TemplateEngine emailTemplateEngine;
 
     public MailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
-        this.templateEngine = templateEngine;
+        this.emailTemplateEngine = templateEngine;
     }
 
     @Override
@@ -26,7 +27,7 @@ public class MailServiceImpl implements MailService {
         try {
             Context context = new Context();
             context.setVariable("code", code);
-            String htmlContent = templateEngine.process("email", context);
+            String htmlContent = emailTemplateEngine.process("email", context);
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
             helper.setTo(to);

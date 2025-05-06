@@ -6,10 +6,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 @Configuration
-public class ThymeleafConfig {
+public class EmailThymeleafConfig {
 
-    @Bean
-    public TemplateEngine templateEngine() {
+    @Bean(name = "emailTemplateEngine")
+    public TemplateEngine emailTemplateEngine() {
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/");
         templateResolver.setSuffix(".html");
