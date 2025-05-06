@@ -58,8 +58,7 @@ jobs:
           key: ${{ vars.EC2_SSH_KEY }}
           script: |
             export SPRING_PROFILES_ACTIVE=prod
-            sudo docker-compose stop
-            sudo docker-compose rm -f
-            sudo docker rmi ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
-            sudo docker-compose pull
-            sudo docker-compose up -d
+            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest   
+            docker stop $(docker ps -a -q)
+            docker rmi ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
+            docker run -d --log-driver=syslog -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/erica-favicon:latest

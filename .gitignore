@@ -3,6 +3,7 @@
 /src/main/java/com/capstone/favicon/config/CorsConfig.java
 /org
 .env
+*.pem
 
 HELP.md
 .gradle
@@ -51,7 +52,6 @@ out/
 ### ec2 ###
 favicon-key.pem
 
-application.properties
 SecurityConfig.java
 requirement.txt
 기상청_월별_processed.csv
