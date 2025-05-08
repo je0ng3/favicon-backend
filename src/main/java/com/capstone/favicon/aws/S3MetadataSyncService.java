@@ -55,7 +55,7 @@ public class S3MetadataSyncService {
         }
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python3", "/home/ubuntu/s3_rds.py");
+            ProcessBuilder processBuilder = new ProcessBuilder("python3", "s3_rds.py");
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 

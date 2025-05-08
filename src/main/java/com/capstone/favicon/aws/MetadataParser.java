@@ -26,7 +26,7 @@ public class MetadataParser {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("해당 카테고리는 존재하지 않습니다: " + themeName));
 
-        return new DatasetMetadata(datasetThemeId, datasetName, fileName, organization, type);
+        return new DatasetMetadata(datasetThemeId, datasetName, purefileName, organization, type);
     }
 
     private static String extractFileType(String fileName) {
