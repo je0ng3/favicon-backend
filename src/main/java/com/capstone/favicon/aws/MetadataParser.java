@@ -8,7 +8,8 @@ import java.util.List;
 public class MetadataParser {
 
     public static DatasetMetadata extractMetadata(String fileName, List<DatasetTheme> themes) {
-        String[] parts = fileName.split("_");
+        String purefileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+        String[] parts = purefileName.split("_");
 
         if (parts.length < 3) {
             throw new IllegalArgumentException("파일명 형식이 올바르지 않습니다: " + fileName);
@@ -17,7 +18,7 @@ public class MetadataParser {
         String themeName = parts[0];
         String datasetName = parts[1];
         String organization = parts[parts.length - 1];
-        String type = extractFileType(fileName);
+        String type = extractFileType(purefileName);
 
         Long datasetThemeId = themes.stream()
                 .filter(t -> t.getTheme().equals(themeName))

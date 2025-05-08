@@ -52,14 +52,14 @@ public class DatasetService {
         return datasetRepository.findById(datasetId);
     }
 
-    public Map<String, Double> getThemeRatio() {
+    public Map<String, Map<String, Object>> getThemeStats() {
         long total = datasetRepository.count();
 
         if (total == 0) {
             return Map.of(
-                    "climate", 0.0,
-                    "environment", 0.0,
-                    "disease", 0.0
+                    "기후", Map.of("count", 0, "ratio", 0),
+                    "환경", Map.of("count", 0, "ratio", 0),
+                    "질병", Map.of("count", 0, "ratio", 0)
             );
         }
 
@@ -67,16 +67,17 @@ public class DatasetService {
         long environmentCount = datasetRepository.countByDatasetTheme_DatasetThemeId(2L);
         long diseaseCount = datasetRepository.countByDatasetTheme_DatasetThemeId(3L);
 
-        double climateRatio = (double) climateCount / total;
-        double environmentRatio = (double) environmentCount / total;
-        double diseaseRatio = (double) diseaseCount / total;
+        int climateRatio = (int) Math.round((double) climateCount / total * 100);
+        int environmentRatio = (int) Math.round((double) environmentCount / total * 100);
+        int diseaseRatio = (int) Math.round((double) diseaseCount / total * 100);
 
         return Map.of(
-                "기후", climateRatio,
-                "환경", environmentRatio,
-                "질병", diseaseRatio
+                "기후", Map.of("count", climateCount, "ratio", climateRatio),
+                "환경", Map.of("count", environmentCount, "ratio", environmentRatio),
+                "질병", Map.of("count", diseaseCount, "ratio", diseaseRatio)
         );
     }
+
 
     public List<Dataset> getDatasetsByCategory(Long datasetThemeId) {
         return datasetRepository.findByDatasetTheme_DatasetThemeId(datasetThemeId);

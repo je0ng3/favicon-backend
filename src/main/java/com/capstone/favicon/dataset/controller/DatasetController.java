@@ -53,8 +53,8 @@ public class DatasetController {
     }
 
     @GetMapping("/ratio")
-    public ResponseEntity<Map<String, Double>> getThemeRatio() {
-        return ResponseEntity.ok(datasetService.getThemeRatio());
+    public ResponseEntity<Map<String, Map<String, Object>>> getThemeStats() {
+        return ResponseEntity.ok(datasetService.getThemeStats());
     }
 
     @GetMapping("/category/{themeId}")
