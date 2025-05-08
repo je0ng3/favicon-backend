@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다. 재확인해주세요.");
         }
         String otp = otpService.generateOTP(email);
-        mailService.send(email, "[Favicon] 회원가입 인증번호", "인증번호: "+otp);
+        mailService.send(email, "[Favicon] 회원가입 인증번호", otp);
     }
 
     @Override
