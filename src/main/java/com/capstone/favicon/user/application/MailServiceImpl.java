@@ -1,27 +1,41 @@
 package com.capstone.favicon.user.application;
 
 import com.capstone.favicon.user.application.service.MailService;
-import org.springframework.mail.SimpleMailMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 
 @Service
 public class MailServiceImpl implements MailService {
 
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
 
-    public MailServiceImpl(JavaMailSender mailSender) {
+    public MailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
     }
 
     @Override
-    public void send(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        mailSender.send(message);
+    public void send(String to, String subject, String code) {
+        try {
+            Context context = new Context();
+            context.setVariable("code", code);
+            String htmlContent = templateEngine.process("email", context);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
