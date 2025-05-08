@@ -41,4 +41,8 @@ public class DataRequest {
     public enum ReviewStatus {
         PENDING, APPROVED, REJECTED
     }
+
+    public Long getUserId() {
+        return user.getUserId();
+    }
 }
