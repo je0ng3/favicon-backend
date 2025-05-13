@@ -19,8 +19,8 @@ public class RegionController {
     private RegionServiceImpl regionServiceImpl;
 
     @GetMapping
-    public ResponseEntity<List<Region>> getAllRegions() {
-        List<Region> regions = regionServiceImpl.getAllRegions();
+    public ResponseEntity<List<String>> getAllRegions() {
+        List<String> regions = regionServiceImpl.findAllRegionNames();
         return ResponseEntity.ok(regions);
     }
 }

@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -95,9 +94,6 @@ public class AnalysisServiceImpl implements AnalysisService {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-            // 결과 JSON 파싱
-            //Map<String, Object> result = objectMapper.readValue(output.toString(), new TypeReference<>() {});
 
             return result;
 
