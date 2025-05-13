@@ -26,7 +26,7 @@ public class S3MetadataSyncService {
         this.datasetThemeRepository = datasetThemeRepository;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 6000000)
     public void syncS3FilesToDB() {
         List<String> fileNames = s3Config.listFilesInBucket();
         List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();

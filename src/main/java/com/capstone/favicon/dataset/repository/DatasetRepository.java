@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface DatasetRepository extends JpaRepository<Dataset, Long> {
+    List<Dataset> findAllByOrderByDownloadDesc();
     List<Dataset> findTop9ByOrderByDownloadDesc();
     long countByDatasetTheme_DatasetThemeId(Long datasetThemeId);
     List<Dataset> findByDatasetTheme_DatasetThemeId(Long datasetThemeId);

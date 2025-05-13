@@ -23,8 +23,14 @@ public class MetadataParser {
                 : organizationWithExtension;
         String type = extractFileType(purefileName);
 
-        String titleWithoutExtension = purefileName.substring(0, purefileName.lastIndexOf('.'));
-
+        String titleWithoutExtension;
+        int firstUnderscore = purefileName.indexOf("_");
+        int secondUnderscore = purefileName.indexOf("_", firstUnderscore + 1);
+        if (firstUnderscore != -1 && secondUnderscore != -1) {
+            titleWithoutExtension = purefileName.substring(0, secondUnderscore);
+        } else {
+            titleWithoutExtension = purefileName.substring(0, purefileName.lastIndexOf('.'));
+        }
         Long datasetThemeId = themes.stream()
                 .filter(t -> t.getTheme().equals(themeName))
                 .map(DatasetTheme::getDatasetThemeId)
