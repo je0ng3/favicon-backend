@@ -19,8 +19,8 @@ public class TrendScheduler {
     private final DatasetRepository datasetRepository;
     private final TrendRepository trendRepository;
 
-    /*@Scheduled(cron = "0 * * * * *") */ // 매 1분마다 실행
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정
+    /*@Scheduled(cron = "0 * * * * *") */ // 매 1분마다 실행(테스트용으로 하기)
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정(실제 배포용으로)
     public void analyzeTrends() {
         List<Dataset> datasets = datasetRepository.findAllByOrderByDownloadDesc();
         LocalDate today = LocalDate.now();

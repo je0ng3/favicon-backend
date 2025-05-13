@@ -19,7 +19,7 @@ public class TrendController {
     private final TrendRepository trendRepository;
     private final DatasetRepository datasetRepository;
 
-    // 트렌드 데이터 확인 (특정 날짜 기준)
+    // 트렌드 데이터 확인(당일 기준으로 조회 하면 됨)
     @GetMapping("/daily")
     public ResponseEntity<List<Trend>> getTrendsByDate(@RequestParam("date") LocalDate date) {
         List<Trend> trends = trendRepository.findAllByRankDate(date);
@@ -29,7 +29,7 @@ public class TrendController {
         return ResponseEntity.ok(trends);
     }
 
-    // 특정 Dataset의 트렌드 확인
+    // 특정 Dataset의 트렌드 확인용
     @GetMapping("/{datasetId}")
     public ResponseEntity<List<Trend>> getTrendsByDatasetId(
             @PathVariable Long datasetId,
