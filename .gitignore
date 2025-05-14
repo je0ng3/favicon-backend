@@ -1,6 +1,9 @@
 # Ignore security and cors configuration files
 /src/main/java/com/capstone/favicon/config/SecurityConfig.java
 /src/main/java/com/capstone/favicon/config/CorsConfig.java
+/src/main/resources/application.properties
+/src/main/resources/application-local.properties
+/src/main/resources/application-prod.properties
 /org
 .env
 *.pem
