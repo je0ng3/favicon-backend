@@ -1,6 +1,6 @@
 package com.capstone.favicon.admin.controller;
 
-import com.capstone.favicon.admin.application.NoticeServiceImpl;
+import com.capstone.favicon.admin.application.service.FAQService;
 import com.capstone.favicon.admin.dto.FAQRequestDto;
 import com.capstone.favicon.admin.dto.FAQResponseDto;
 import com.capstone.favicon.user.domain.User;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FAQController {
 
-    private final NoticeServiceImpl.FAQServiceImpl faqService;
+    private final FAQService faqService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createFAQ(@RequestBody FAQRequestDto request, HttpServletRequest httpRequest) {

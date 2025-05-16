@@ -1,11 +1,5 @@
 package com.capstone.favicon.user.application;
 
-import com.capstone.favicon.aws.MetadataParser;
-import com.capstone.favicon.config.S3Config;
-import com.capstone.favicon.dataset.domain.Dataset;
-import com.capstone.favicon.dataset.domain.DatasetTheme;
-import com.capstone.favicon.dataset.domain.FileExtension;
-import com.capstone.favicon.dataset.domain.Resource;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
@@ -13,9 +7,6 @@ import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.repository.UserRepository;
 import com.capstone.favicon.user.repository.DataRequestRepository;
-import com.capstone.favicon.dataset.repository.DatasetRepository;
-import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
-import com.capstone.favicon.dataset.repository.ResourceRepository;
 import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
 import com.capstone.favicon.user.application.service.RequestService;
@@ -32,10 +23,6 @@ public class RequestImpl implements RequestService {
     private final DataRequestRepository dataRequestRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
-    private final DatasetRepository datasetRepository;
-    private final DatasetThemeRepository datasetThemeRepository;
-    private final ResourceRepository resourceRepository;
-    private final S3Config s3Config;
     private final UserRepository userRepository;
 
     @Override

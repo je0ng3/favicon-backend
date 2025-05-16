@@ -1,5 +1,6 @@
 package com.capstone.favicon.dataset.application;
 
+import com.capstone.favicon.dataset.application.service.ResourceService;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.dataset.domain.Resource;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
@@ -13,7 +14,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class ResourceService {
+public class ResourceServiceImpl implements ResourceService {
 
     @Autowired
     private ResourceRepository resourceRepository;
@@ -23,6 +24,7 @@ public class ResourceService {
      * @param datasetId
      * @return resourceUrl
      */
+    @Override
     public String getResourceUrlByDatasetId(Long datasetId) {
         Resource resource = resourceRepository.findByDatasetDatasetId(datasetId)
                 .orElseThrow(() -> {
@@ -37,6 +39,7 @@ public class ResourceService {
      * @param datasetId
      * @return FileExtension
      */
+    @Override
     public FileExtension getFileExtensionByDatasetId(Long datasetId) {
         Optional<Resource> resource = resourceRepository.findByDatasetDatasetId(datasetId);
         return resource.map(Resource::getType).orElse(FileExtension.TXT);

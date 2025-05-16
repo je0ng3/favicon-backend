@@ -10,7 +10,6 @@ import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +25,8 @@ public class S3Controller {
     private final DatasetThemeRepository datasetThemeRepository;
     private final ResourceRepository resourceRepository;
 
-    public S3Controller(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
+    public S3Controller(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository,
+                        DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
         this.s3Config = s3Config;
         this.datasetRepository = datasetRepository;
         this.datasetThemeRepository = datasetThemeRepository;

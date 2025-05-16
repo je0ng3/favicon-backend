@@ -1,7 +1,9 @@
 package com.capstone.favicon.dataset.application;
 
 import com.capstone.favicon.config.S3Config;
-import com.capstone.favicon.dataset.application.ResourceService;
+import com.capstone.favicon.dataset.application.service.FilePathService;
+import com.capstone.favicon.dataset.application.service.ResourceService;
+import com.capstone.favicon.dataset.application.service.S3FileDownloadService;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,16 +17,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 @Service
-public class S3FileDownloadService extends S3Config {
+public class S3FileDownloadServiceImpl extends S3Config implements S3FileDownloadService {
     @Autowired
     private ResourceService resourceService;
+    @Autowired
+    private FilePathService filePathService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3FileDownloadService(@Value("${aws.s3.region}") String region,
-                                 @Value("${aws.s3.access-key}") String accessKey,
-                                 @Value("${aws.s3.secret-key}") String secretKey) {
+    public S3FileDownloadServiceImpl(@Value("${aws.s3.region}") String region,
+                                     @Value("${aws.s3.access-key}") String accessKey,
+                                     @Value("${aws.s3.secret-key}") String secretKey) {
         super(region, accessKey, secretKey);
     }
 
@@ -34,10 +38,11 @@ public class S3FileDownloadService extends S3Config {
      * @return 다운로드된 파일
      * @throws IOException 파일 다운로드 중 발생할 수 있는 예외
      */
+    @Override
     public File downloadFile(Long datasetId) throws IOException {
 
         // 다운로드 경로 설정
-        String downloadDir = FilePathService.getDownloadDir();
+        String downloadDir = filePathService.getDownloadDir();
 
         // 데이터셋 ID를 기반으로 파일 URL, 확장자 가져오기
         String fileUrl = resourceService.getResourceUrlByDatasetId(datasetId);

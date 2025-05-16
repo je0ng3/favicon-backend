@@ -1,6 +1,6 @@
 package com.capstone.favicon.dataset.controller;
 
-import com.capstone.favicon.dataset.application.S3FileDownloadService;
+import com.capstone.favicon.dataset.application.service.S3FileDownloadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;

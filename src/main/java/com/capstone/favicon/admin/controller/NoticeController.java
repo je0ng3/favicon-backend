@@ -1,8 +1,8 @@
 package com.capstone.favicon.admin.controller;
 
+import com.capstone.favicon.admin.application.service.NoticeService;
 import com.capstone.favicon.admin.domain.Notice;
 import com.capstone.favicon.admin.dto.NoticeRequestDto;
-import com.capstone.favicon.admin.application.NoticeServiceImpl;
 import com.capstone.favicon.admin.dto.NoticeResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoticeController {
 
-    private final NoticeServiceImpl noticeService;
+    private final NoticeService noticeService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createNotice(@RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {

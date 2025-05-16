@@ -6,6 +6,7 @@ import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
 import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class S3MetadataSyncService {
     private final DatasetRepository datasetRepository;
     private final DatasetThemeRepository datasetThemeRepository;
 
-    public S3MetadataSyncService(S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository) {
+    public S3MetadataSyncService(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository) {
         this.s3Config = s3Config;
         this.datasetRepository = datasetRepository;
         this.datasetThemeRepository = datasetThemeRepository;
