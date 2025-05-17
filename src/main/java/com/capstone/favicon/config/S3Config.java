@@ -9,12 +9,18 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.io.InputStream;
+import java.net.URL;
 
 @Service
 public class S3Config {
@@ -60,6 +66,18 @@ public class S3Config {
                 .build();
 
         s3Client.deleteObject(deleteRequest);
+    }
+
+    public List<String> listFilesInBucket() {
+        ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(listObjectsV2Request);
+
+        return response.contents().stream()
+                .map(object -> object.key())
+                .collect(Collectors.toList());
     }
 
     /**

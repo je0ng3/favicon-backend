@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAVICON 회원가입 인증 코드</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d4f1a1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+            border: 2px solid #cccccc;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333333;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555555;
+            line-height: 1.5;
+        }
+
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50; /* 인증 코드 색상 */
+            margin: 20px 0;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>FAVICON</h1>
+    <h1>회원가입 인증 코드</h1>
+    <p>아래의 인증 코드를 입력하여 회원가입을 완료하세요.</p>
+    <div class="code">[[${code}]]</div>
+    <p>이 코드는 3분 동안 유효합니다.</p>
+    <h1></h1>
+</div>
+</body>
+</html>
