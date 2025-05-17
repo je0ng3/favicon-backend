@@ -1,8 +1,10 @@
 package com.capstone.favicon.dataset.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.application.service.DatasetThemeService;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,27 +24,16 @@ public class DatasetThemeController {
     }
 
     @GetMapping("/filter")
-    public List<DatasetTheme> getFilteredDatasets(
+    public ResponseEntity<APIResponse<?>> getDatasets(
             @RequestParam(name = "region", required = false) String region,
             @RequestParam(name = "dataYear", required = false) Integer dataYear,
             @RequestParam(name = "fileType", required = false) String fileType) {
 
-        if (region != null && dataYear != null && fileType != null) {
-            return datasetThemeService.getFilteredDatasets(region, dataYear, fileType);
-        } else if (region != null && dataYear != null) {
-            return datasetThemeService.getDatasetsByRegionAndDataYear(region, dataYear);
-        } else if (region != null && fileType != null) {
-            return datasetThemeService.getDatasetsByRegionAndFileType(region, fileType);
-        } else if (dataYear != null && fileType != null) {
-            return datasetThemeService.getDatasetsByDataYearAndFileType(dataYear, fileType);
-        } else if (region != null) {
-            return datasetThemeService.getDatasetsByRegion(region);
-        } else if (dataYear != null) {
-            return datasetThemeService.getDatasetsByDataYear(dataYear);
-        } else if (fileType != null) {
-            return datasetThemeService.getDatasetsByFileType(fileType);
-        } else {
-            return datasetThemeService.getAllDatasets();
+        try {
+            List<DatasetTheme> datasets = datasetThemeService.getDatasets(region, dataYear, fileType);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
     }
 

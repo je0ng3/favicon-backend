@@ -4,12 +4,14 @@ import com.capstone.favicon.admin.application.service.NoticeService;
 import com.capstone.favicon.admin.domain.Notice;
 import com.capstone.favicon.admin.dto.NoticeRequestDto;
 import com.capstone.favicon.admin.dto.NoticeResponseDto;
+import com.capstone.favicon.config.APIResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/notice")
@@ -19,37 +21,64 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createNotice(@RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
-        noticeService.createNotice(noticeService.getAdminUserFromSession(httpRequest).getUserId(), request);
-        return ResponseEntity.ok("공지사항이 등록되었습니다.");
+    public ResponseEntity<APIResponse<?>> createNotice(@RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
+        try {
+            noticeService.createNotice(noticeService.getAdminUserFromSession(httpRequest).getUserId(), request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 등록되었습니다.", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @PutMapping("/{noticeId}")
-    public ResponseEntity<?> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
-        noticeService.getAdminUserFromSession(httpRequest);
-        noticeService.updateNotice(noticeId, request);
-        return ResponseEntity.ok("공지사항이 수정되었습니다.");
+    public ResponseEntity<APIResponse<?>> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
+        try {
+            noticeService.getAdminUserFromSession(httpRequest);
+            noticeService.updateNotice(noticeId, request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 수정되었습니다.", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{noticeId}")
-    public ResponseEntity<?> deleteNotice(@PathVariable Long noticeId, HttpServletRequest httpRequest) {
-        noticeService.getAdminUserFromSession(httpRequest);
-        noticeService.deleteNotice(noticeId);
-        return ResponseEntity.ok("공지사항이 삭제되었습니다.");
+    public ResponseEntity<APIResponse<?>> deleteNotice(@PathVariable Long noticeId, HttpServletRequest httpRequest) {
+        try {
+            noticeService.getAdminUserFromSession(httpRequest);
+            noticeService.deleteNotice(noticeId);
+            return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 삭제되었습니다.", null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<NoticeResponseDto>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+    public ResponseEntity<APIResponse<?>> getAllNotices() {
+        try {
+            List<NoticeResponseDto> notices = noticeService.getAllNotices();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", notices));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @GetMapping("/{noticeId}")
-    public ResponseEntity<NoticeResponseDto> getNoticeById(@PathVariable Long noticeId) {
-        return ResponseEntity.ok(noticeService.getNoticeById(noticeId));
+    public ResponseEntity<APIResponse<?>> getNoticeById(@PathVariable Long noticeId) {
+        try {
+            NoticeResponseDto notice = noticeService.getNoticeById(noticeId);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", notice));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @GetMapping("/view/{noticeId}")
-    public ResponseEntity<Notice> getNotice(@PathVariable Long noticeId) {
-        return ResponseEntity.ok(noticeService.getNotice(noticeId));
+    public ResponseEntity<APIResponse<?>> getNotice(@PathVariable Long noticeId) {
+        try {
+            Notice notice = noticeService.getNotice(noticeId);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", notice));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 }

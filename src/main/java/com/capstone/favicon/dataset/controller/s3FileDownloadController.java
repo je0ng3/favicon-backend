@@ -1,5 +1,6 @@
 package com.capstone.favicon.dataset.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.application.service.S3FileDownloadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -21,7 +22,7 @@ public class s3FileDownloadController {
     private S3FileDownloadService s3FileDownloadService;
 
     @GetMapping(value="/download/{datasetId}", produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Long datasetId) throws IOException {
+    public ResponseEntity<APIResponse<?>> downloadFile(@PathVariable Long datasetId) throws IOException {
 
         File downloadedFile = s3FileDownloadService.downloadFile(datasetId);
         Resource fileResource = new FileSystemResource(downloadedFile);
@@ -30,6 +31,6 @@ public class s3FileDownloadController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8" + fileName)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(fileResource);
+                .body(APIResponse.successAPI("success", fileResource));
     }
 }
