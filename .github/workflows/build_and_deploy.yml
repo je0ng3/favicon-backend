@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  deployment:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,33 +31,10 @@ jobs:
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
 
-      - name: Generate .env
-        run: echo "${{ secrets.ENV }}" > .env
-
-      - name: Create config and properties files
-        run: |
-          mkdir -p ./src/main/java/com/capstone/favicon/config
-          cat <<EOF > ./src/main/java/com/capstone/favicon/config/SecurityConfig.java
-          ${{ secrets.SECURITY_CONFIG }}
-          EOF
-          cat <<EOF > ./src/main/java/com/capstone/favicon/config/CorsConfig.java
-          ${{ secrets.CORS_CONFIG }}
-          EOF
-          mkdir -p ./src/main/resources
-          cat <<EOF > ./src/main/resources/application.properties
-          ${{ secrets.APP_PROPERTIES }}
-          EOF
-          cat <<EOF > ./src/main/resources/application-local.properties
-          ${{ secrets.APP_LOCAL_PROPERTIES }}
-          EOF
-          cat <<EOF > ./src/main/resources/application-prod.properties
-          ${{ secrets.APP_PROD_PROPERTIES }}
-          EOF
-
       - name: Build Docker image
         run: |
           docker build \
-          --build-arg SPRING_PROFILES_ACTIVE=local \
+          --build-arg SPRING_PROFILES_ACTIVE=prob \
           -f Dockerfile \
           -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest .
 
@@ -68,17 +45,5 @@ jobs:
           password: ${{ vars.DOCKERHUB_PASSWORD}}
 
       - name: Push Docker image
-        run: docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
-
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.EC2_HOST }}
-          username: favicon
-          key: ${{ vars.EC2_SSH_KEY }}
-          script: |
-            export SPRING_PROFILES_ACTIVE=prod
-            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest   
-            docker stop $(docker ps -a -q)
-            docker rmi ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
-            docker run -d --log-driver=syslog -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/erica-favicon:latest
+        run: |
+          docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
