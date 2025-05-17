@@ -29,8 +29,8 @@ public class DatasetService {
         return datasetRepository.findAll();
     }
 
-    public List<Dataset> getTop10ByDownload() {
-        return datasetRepository.findTop10ByOrderByDownloadDesc();
+    public List<Dataset> getTop9ByDownload() {
+        return datasetRepository.findTop9ByOrderByDownloadDesc();
     }
 
     @Transactional

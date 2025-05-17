@@ -27,9 +27,9 @@ public class DatasetController {
         return datasetService.findAllDatasets();
     }
 
-    @GetMapping("/top10")
+    @GetMapping("/top9")
     public List<Dataset> getTop10Datasets() {
-        return datasetService.getTop10ByDownload();
+        return datasetService.getTop9ByDownload();
     }
 
     @PostMapping("/incrementDownload/{datasetId}")

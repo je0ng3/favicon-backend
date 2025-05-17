@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class S3MetadataSyncService {
         this.datasetThemeRepository = datasetThemeRepository;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 6000000)
     public void syncS3FilesToDB() {
         List<String> fileNames = s3Config.listFilesInBucket();
         List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
@@ -45,6 +46,10 @@ public class S3MetadataSyncService {
                             datasetThemes.stream().filter(theme -> theme.getDatasetThemeId().equals(metadata.getDatasetThemeId())).findFirst().orElse(null),
                             metadata.getName(), metadata.getTitle(), metadata.getOrganization()
                     );
+
+                    dataset.setUpdateDate(LocalDate.now());  // 현재 날짜로 설정
+                    dataset.setDownload(0);
+
                     datasetRepository.save(dataset);
                     System.out.println("새로운 데이터셋 추가됨: " + metadata.getName());
                 }
@@ -55,7 +60,7 @@ public class S3MetadataSyncService {
         }
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python3", "/home/ubuntu/s3_rds.py");
+            ProcessBuilder processBuilder = new ProcessBuilder("venv/bin/python3", "s3_rds.py");
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
