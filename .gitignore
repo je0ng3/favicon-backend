@@ -50,7 +50,6 @@ out/
 ### ec2 ###
 favicon-key.pem
 
-SecurityConfig.java
 requirement.txt
 기상청_월별_processed.csv
 기후_감기_건강보험심사평가원.csv
