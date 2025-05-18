@@ -25,8 +25,8 @@ public class SecurityConfig {
                                 "/users/login", "/users/logout", "/users/admin-check", "/s3/upload", "/s3/delete/{resourceId}",
                                 "/users/delete-account", "/users/session-check", "/data-set", "/request/list","/request/list/{requestId}/review", "/request/{requestId}","/request/question",
                                 "/request/question/{questionId}",   "/request/answer", "/request/answer/{answerId}","/data-set/search-sorted", "/data-set/search-sorted/{category}",
-                                "/trend/**",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}", "/data-set/group-by-theme", "/region").permitAll()
+                                "/trend/**", "data-set/group-by-theme", "/region", "/analysis",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
