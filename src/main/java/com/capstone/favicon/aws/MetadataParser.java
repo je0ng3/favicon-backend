@@ -17,16 +17,27 @@ public class MetadataParser {
 
         String themeName = parts[0];
         String datasetName = parts[1];
-        String organization = parts[parts.length - 1];
+        String organizationWithExtension = parts[parts.length - 1];
+        String organization = organizationWithExtension.contains(".")
+                ? organizationWithExtension.substring(0, organizationWithExtension.lastIndexOf('.'))
+                : organizationWithExtension;
         String type = extractFileType(purefileName);
 
+        String titleWithoutExtension;
+        int firstUnderscore = purefileName.indexOf("_");
+        int secondUnderscore = purefileName.indexOf("_", firstUnderscore + 1);
+        if (firstUnderscore != -1 && secondUnderscore != -1) {
+            titleWithoutExtension = purefileName.substring(0, secondUnderscore);
+        } else {
+            titleWithoutExtension = purefileName.substring(0, purefileName.lastIndexOf('.'));
+        }
         Long datasetThemeId = themes.stream()
                 .filter(t -> t.getTheme().equals(themeName))
                 .map(DatasetTheme::getDatasetThemeId)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("해당 카테고리는 존재하지 않습니다: " + themeName));
 
-        return new DatasetMetadata(datasetThemeId, datasetName, fileName, organization, type);
+        return new DatasetMetadata(datasetThemeId, datasetName, titleWithoutExtension, organization, type);
     }
 
     private static String extractFileType(String fileName) {

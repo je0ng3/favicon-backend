@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface DatasetService {
     List<Dataset> findAllDatasets();
 
-    List<Dataset> getTop10ByDownload();
+    List<Dataset> getTop9ByDownload();
 
     @Transactional
     void incrementDownloadCount(Long datasetId);

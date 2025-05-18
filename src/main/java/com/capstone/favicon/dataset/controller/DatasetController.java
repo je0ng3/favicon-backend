@@ -32,10 +32,10 @@ public class DatasetController {
         }
     }
 
-    @GetMapping("/top10")
-    public ResponseEntity<APIResponse<?>> getTop10Datasets() {
+    @GetMapping("/top9")
+    public ResponseEntity<APIResponse<?>> getTop9Datasets() {
         try {
-            List<Dataset> datasets = datasetService.getTop10ByDownload();
+            List<Dataset> datasets = datasetService.getTop9ByDownload();
             return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
