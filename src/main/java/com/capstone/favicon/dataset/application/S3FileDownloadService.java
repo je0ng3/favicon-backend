@@ -22,7 +22,7 @@ public class S3FileDownloadService extends S3Config {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3FileDownloadService(@Value("${AWS_REGION}") String region,
+    public S3FileDownloadService(@Value("${aws.s3.region}") String region,
                                  @Value("${aws.s3.access-key}") String accessKey,
                                  @Value("${aws.s3.secret-key}") String secretKey) {
         super(region, accessKey, secretKey);
