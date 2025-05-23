@@ -52,7 +52,9 @@ public class S3MetadataSyncService {
                             metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription()
                     );
 
-                    dataset.setUpdateDate(LocalDate.now());
+                    LocalDate lastModified = s3Config.getLastModifiedDate(fileName);
+                    dataset.setUpdateDate(lastModified);
+                    //dataset.setUpdateDate(LocalDate.now());
                     dataset.setDownload(0);
                     dataset.setView(0);
                     dataset.setCreatedDate(LocalDate.now());

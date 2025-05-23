@@ -8,15 +8,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.io.InputStream;
@@ -103,5 +102,18 @@ public class S3Config {
     public String generateFileUrl(String fileName) {
         return "s3://" + bucketName + "/" + fileName;  //다운로드 기능 테스트 및 경로 물어보기
         //return "https://favicon-dataset.s3.ap-northeast-2.amazonaws.com/" + fileName;
+    }
+
+    public LocalDate getLastModifiedDate(String s3Key) {
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .build();
+
+        HeadObjectResponse headObjectResponse = s3Client.headObject(headRequest);
+
+        return headObjectResponse.lastModified()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }
