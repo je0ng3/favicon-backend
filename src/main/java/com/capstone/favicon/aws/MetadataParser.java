@@ -24,10 +24,8 @@ public class MetadataParser {
         String titleWithoutExtension = pureFileName.substring(0, pureFileName.lastIndexOf('.'));
         String[] titleParts = titleWithoutExtension.split("_");
 
-        // title의 맨끝 지역 이름
         String region = titleParts[titleParts.length - 1];
 
-        // title의 2번째 부분 (index=1) 세부 카테고리
         String subCategory = titleParts.length > 2 ? titleParts[1] : "";
 
         Long datasetThemeId = themes.stream()
