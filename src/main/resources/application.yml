@@ -1,0 +1,31 @@
+
+
+spring:
+  datasource:
+    #url: jdbc:postgresql://favicon-database.c5q6se0mu4pm.ap-northeast-2.rds.amazonaws.com:5432/favicon_db
+    url: jdbc:postgresql://localhost:5432/postgres
+    #username: favicon
+    username: postgres
+    #password: 'favicon2024'
+    password: '0000'
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    database: postgresql
+    hibernate:
+      ddl-auto: update
+
+  api-docs:
+    enabled: true
+    version: openapi_3_0
+    packagesToScan: mokindang.jubging
+    path: /v3/api-docs
+
+  default-consumes-media-type: application/json
+  auto-tag-classes: true
+  groups:
+    enabled: false
+
+  swagger-ui:
+    operationsSorter: method
+    path: /swagger-ui.html

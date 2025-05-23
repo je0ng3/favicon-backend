@@ -39,12 +39,14 @@ public class S3Controller {
             throw new IllegalArgumentException("파일 이름이 올바르지 않습니다.");
         }
 
-        String fileName = file.getOriginalFilename().trim();
-        String fileUrl = s3Config.uploadFile(file);
+        String originalFileName = file.getOriginalFilename().trim();
+        String s3FileName = "preprocessing";
+
+        String fileUrl = s3Config.uploadFile(file, s3FileName);
 
         List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
 
-        DatasetMetadata metadata = MetadataParser.extractMetadata(fileName, datasetThemes);
+        DatasetMetadata metadata = MetadataParser.extractMetadata(originalFileName, datasetThemes);
 
         DatasetTheme datasetTheme = datasetThemes.stream()
                 .filter(theme -> theme.getDatasetThemeId().equals(metadata.getDatasetThemeId()))
@@ -54,7 +56,7 @@ public class S3Controller {
         Dataset dataset = datasetRepository
                 .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
                 .orElseGet(() -> datasetRepository.save(
-                        new Dataset(datasetTheme, metadata.getName(), metadata.getTitle(), metadata.getOrganization())
+                        new Dataset(datasetTheme, metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription())
                 ));
 
         FileExtension type;
@@ -64,7 +66,7 @@ public class S3Controller {
             throw new IllegalArgumentException("지원되지 않는 파일 확장자입니다: " + metadata.getType());
         }
 
-        Resource resource = new Resource(dataset, fileName, type, fileUrl);
+        Resource resource = new Resource(dataset, originalFileName, type, fileUrl);
         resourceRepository.save(resource);
 
         return "파일이 업로드 되었습니다: " + fileUrl;

@@ -41,20 +41,20 @@ public class S3Config {
                 .build();
     }
 
-    public String uploadFile(MultipartFile file) throws IOException {
-        String fileName = /*UUID.randomUUID() + "_" + */ file.getOriginalFilename();
-        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+    public String uploadFile(MultipartFile file, String directory) throws IOException {
+        String fileName = file.getOriginalFilename();
+        String fullKey = directory + "/" + fileName;  // e.g. preprocessing/파일명.csv
+        String encodedFileName = URLEncoder.encode(fullKey, StandardCharsets.UTF_8).replace("+", "%20");
 
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(fullKey)
                 .contentType(file.getContentType())
                 .build();
 
         s3Client.putObject(putRequest, RequestBody.fromBytes(file.getBytes()));
-        //객체 url대신 s3 url로 변경하면 되는지 여쭤보기
-        //return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + encodedFileName;
-        return "s3://" + bucketName + "/" + fileName;
+
+        return "s3://" + bucketName + "/" + fullKey;
     }
 
     public void deleteFile(String fileUrl) {
@@ -98,5 +98,10 @@ public class S3Config {
 
     protected String encodeFileName(String fileName) throws UnsupportedEncodingException {
         return URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+    }
+
+    public String generateFileUrl(String fileName) {
+        return "s3://" + bucketName + "/" + fileName;  //다운로드 기능 테스트 및 경로 물어보기
+        //return "https://favicon-dataset.s3.ap-northeast-2.amazonaws.com/" + fileName;
     }
 }
