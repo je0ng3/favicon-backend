@@ -1,4 +1,4 @@
-name: PR Build Test and Deploy to DockerHub
+name: Deploy to DockerHub & EC2
 
 on:
   push:
