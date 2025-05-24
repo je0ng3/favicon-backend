@@ -3,6 +3,8 @@ name: PR Build Test and Deploy to DockerHub
 on:
   push:
     branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
   build-and-push:
@@ -45,3 +47,14 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
+            docker rm -f back 2>/dev/null || true
+            docker run --name front -d -p 80:3000 ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
