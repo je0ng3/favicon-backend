@@ -57,4 +57,4 @@ jobs:
           script: |
             docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
             docker rm -f back 2>/dev/null || true
-            docker run --name front -d -p 80:3000 ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
+            docker compose -f docker-compose.yml --env-file .env up --build -d
