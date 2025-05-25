@@ -1,16 +1,27 @@
 package com.capstone.favicon.user.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 public class RequestStatsDto {
-    private int currentMonthTotal;
-    private int growthFromLastMonth;
-    private int currentMonthPending;
-    private int pendingGrowthFromLastMonth;
-    private Map<String, Integer> last6MonthsTotals;
+    private final int currentMonthTotal;
+    private final int growthFromLastMonth;
+    private final int currentMonthPending;
+    private final int pendingGrowthFromLastMonth;
+    private final Map<String, Integer> last6MonthsTotals;
+
+    public RequestStatsDto(int currentMonthTotal, int growthFromLastMonth,
+                           int currentMonthPending, int pendingGrowthFromLastMonth,
+                           Map<String, Integer> last6MonthsTotals) {
+        this.currentMonthTotal = currentMonthTotal;
+        this.growthFromLastMonth = growthFromLastMonth;
+        this.currentMonthPending = currentMonthPending;
+        this.pendingGrowthFromLastMonth = pendingGrowthFromLastMonth;
+        this.last6MonthsTotals = last6MonthsTotals;
+    }
+
 }

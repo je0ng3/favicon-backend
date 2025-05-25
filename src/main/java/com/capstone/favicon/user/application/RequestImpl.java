@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 @Service
 @RequiredArgsConstructor
@@ -186,45 +187,60 @@ public class RequestImpl implements RequestService {
         LocalDate sixMonthsAgo = now.minusMonths(5).withDayOfMonth(1);
 
         List<DataRequest> allRequests = dataRequestRepository.findAll();
-        Map<String, Long> totals = allRequests.stream()
+
+        Map<String, Integer> monthlyCumulativeCounts = new LinkedHashMap<>();
+        int cumulativeSum = 0;
+
+        Map<String, Long> monthlyCounts = allRequests.stream()
                 .filter(req -> !req.getUploadDate().isBefore(sixMonthsAgo))
                 .collect(Collectors.groupingBy(
                         req -> req.getUploadDate().withDayOfMonth(1).toString().substring(0, 7),
+                        TreeMap::new,
                         Collectors.counting()
                 ));
 
-        Map<String, Integer> monthlyCounts = new LinkedHashMap<>();
         for (int i = 5; i >= 0; i--) {
             LocalDate month = now.minusMonths(i).withDayOfMonth(1);
             String key = month.toString().substring(0, 7);
-            monthlyCounts.put(key, totals.getOrDefault(key, 0L).intValue());
+            int monthly = monthlyCounts.getOrDefault(key, 0L).intValue();
+            cumulativeSum += monthly;
+            monthlyCumulativeCounts.put(key, cumulativeSum);
         }
 
-        List<String> keys = new ArrayList<>(monthlyCounts.keySet());
-        int currentTotal = monthlyCounts.get(keys.get(keys.size() - 1));
-        int lastTotal = keys.size() >= 2 ? monthlyCounts.get(keys.get(keys.size() - 2)) : 0;
-        int growth = lastTotal > 0 ? (int) Math.round(((double) (currentTotal - lastTotal) / lastTotal) * 100) : 0;
+        List<String> keys = new ArrayList<>(monthlyCumulativeCounts.keySet());
 
-        // PENDING 상태 필터링
-        Map<String, Long> pendingTotals = allRequests.stream()
+        int currentMonthTotal = monthlyCounts.getOrDefault(keys.get(keys.size() - 1), 0L).intValue();
+        int previousMonthTotal = keys.size() >= 2 ? monthlyCounts.getOrDefault(keys.get(keys.size() - 2), 0L).intValue() : 0;
+        int growthFromLastMonth = previousMonthTotal > 0
+                ? (int) Math.round(((double)(currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100)
+                : 0;
+
+        int currentPending = (int) allRequests.stream()
+                .filter(req -> req.getReviewStatus() == DataRequest.ReviewStatus.PENDING)
+                .count();
+
+        Map<String, Long> monthlyPendingCounts = allRequests.stream()
                 .filter(req -> req.getReviewStatus() == DataRequest.ReviewStatus.PENDING)
                 .filter(req -> !req.getUploadDate().isBefore(sixMonthsAgo))
                 .collect(Collectors.groupingBy(
                         req -> req.getUploadDate().withDayOfMonth(1).toString().substring(0, 7),
+                        TreeMap::new,
                         Collectors.counting()
                 ));
 
-        Map<String, Integer> pendingMonthly = new LinkedHashMap<>();
-        for (String key : monthlyCounts.keySet()) {
-            pendingMonthly.put(key, pendingTotals.getOrDefault(key, 0L).intValue());
-        }
+        int currentMonthPending = monthlyPendingCounts.getOrDefault(keys.get(keys.size() - 1), 0L).intValue();
+        int previousMonthPending = keys.size() >= 2 ? monthlyPendingCounts.getOrDefault(keys.get(keys.size() - 2), 0L).intValue() : 0;
+        int pendingGrowthFromLastMonth = previousMonthPending > 0
+                ? (int) Math.round(((double)(currentMonthPending - previousMonthPending) / previousMonthPending) * 100)
+                : 0;
 
-        int currentPending = pendingMonthly.get(keys.get(keys.size() - 1));
-        int lastPending = keys.size() >= 2 ? pendingMonthly.get(keys.get(keys.size() - 2)) : 0;
-        int pendingGrowth = lastPending > 0 ? (int) Math.round(((double) (currentPending - lastPending) / lastPending) * 100) : 0;
-
-        return new RequestStatsDto(currentTotal, growth, currentPending, pendingGrowth, monthlyCounts);
+        return new RequestStatsDto(
+                currentMonthTotal,
+                growthFromLastMonth,
+                currentPending,
+                pendingGrowthFromLastMonth,
+                monthlyCumulativeCounts
+        );
     }
-
 
 }
