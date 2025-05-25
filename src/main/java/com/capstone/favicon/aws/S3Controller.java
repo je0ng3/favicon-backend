@@ -56,7 +56,7 @@ public class S3Controller {
         Dataset dataset = datasetRepository
                 .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
                 .orElseGet(() -> datasetRepository.save(
-                        new Dataset(datasetTheme, metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription())
+                        new Dataset(datasetTheme, metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription(), s3FileName)
                 ));
 
         FileExtension type;
