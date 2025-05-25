@@ -12,5 +12,5 @@ public class RequestStatsDto {
     private int growthFromLastMonth;
     private int currentMonthPending;
     private int pendingGrowthFromLastMonth;
-    private Map<String, Integer> last6MonthsTotals; // 예: {"2025-01": 10, "2025-02": 15, ...}
+    private Map<String, Integer> last6MonthsTotals;
 }

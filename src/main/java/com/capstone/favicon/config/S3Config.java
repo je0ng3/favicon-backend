@@ -77,7 +77,6 @@ public class S3Config {
     }
 
     public void moveFile(String fromKey, String toKey) {
-        // 1. 복사: fromKey → toKey 로 파일 복사
         CopyObjectRequest copyRequest = CopyObjectRequest.builder()
                 .sourceBucket(bucketName)
                 .sourceKey(fromKey)
@@ -87,7 +86,6 @@ public class S3Config {
 
         s3Client.copyObject(copyRequest);
 
-        // 2. 삭제: 원래 있던 fromKey 경로의 파일 삭제
         DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(fromKey)
@@ -148,17 +146,14 @@ public class S3Config {
 
     public String extractKeyFromAnyUrl(String fileUrl) {
         if (fileUrl.startsWith("s3://")) {
-            // s3://favicon-dataset/pending/filename
             int bucketNameEnd = fileUrl.indexOf("/", 5); // after "s3://"
             if (bucketNameEnd == -1) {
                 throw new IllegalArgumentException("Invalid s3 URL: " + fileUrl);
             }
             return fileUrl.substring(bucketNameEnd + 1);
         } else if (fileUrl.contains(".amazonaws.com/")) {
-            // https://favicon-dataset.s3.ap-northeast-2.amazonaws.com/pending/filename
             return fileUrl.substring(fileUrl.indexOf(".com/") + 5);
         } else {
-            // 기존 방식 fallback
             return extractKeyFromUrl(fileUrl);
         }
     }
