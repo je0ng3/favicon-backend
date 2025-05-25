@@ -11,6 +11,7 @@ import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.DataRequestDto;
+import com.capstone.favicon.user.dto.RequestStatsDto;
 import com.capstone.favicon.user.repository.UserRepository;
 import com.capstone.favicon.user.repository.DataRequestRepository;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
@@ -23,8 +24,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +54,7 @@ public class RequestImpl implements RequestService {
     public DataRequest createRequest(DataRequestDto dataRequestDto) {
         User user = userRepository.findByUserId(dataRequestDto.getUserId());
         if (user == null) {
-            throw new RuntimeException("User not found with userId: " + dataRequestDto.getUserId());
+            throw new RuntimeException("유저 아이디를 찾을 수 없음: " + dataRequestDto.getUserId());
         }
 
         DataRequest dataRequest = new DataRequest();
@@ -57,7 +63,13 @@ public class RequestImpl implements RequestService {
         dataRequest.setTitle(dataRequestDto.getTitle());
         dataRequest.setContent(dataRequestDto.getContent());
         dataRequest.setUploadDate(LocalDate.now());
-        dataRequest.setFileUrl(dataRequestDto.getFileUrl());
+        try {
+            String uploadedUrl = s3Config.uploadFile(dataRequestDto.getFile(), "pending");
+            dataRequest.setFileUrl(uploadedUrl);
+        } catch (IOException e) {
+            throw new RuntimeException("s3에 업로드 실패", e);
+        }
+        //dataRequest.setFileUrl(dataRequestDto.getFileUrl());
         dataRequest.setOrganization(dataRequestDto.getOrganization());
         dataRequest.setReviewStatus(DataRequest.ReviewStatus.PENDING);
 
@@ -68,7 +80,26 @@ public class RequestImpl implements RequestService {
     @Transactional
     public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status) {
         DataRequest request = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new RuntimeException("요청을 찾지 못했습니다"));
+
+        String fileUrl = request.getFileUrl();
+        if (fileUrl != null) {
+            String key = s3Config.extractKeyFromAnyUrl(fileUrl);
+            System.out.println("추출된 키: " + key);
+            System.out.println("추출된 파일명: " + s3Config.extractFileNameFromKey(key));
+
+            if (status == DataRequest.ReviewStatus.APPROVED) {
+                // 승인시 preprocessing 폴더로 이동(테스트 완료)
+                String newKey = "preprocessing/" + s3Config.extractFileNameFromKey(key);
+                s3Config.moveFile(key, newKey);
+                request.setFileUrl(s3Config.generateFileUrl(newKey));
+
+            } else if (status == DataRequest.ReviewStatus.REJECTED) {
+                // 거절시 pending 폴더에 있는 파일 삭제(테스트 완료)
+                s3Config.deleteFileByKey(key);
+                request.setFileUrl(null);
+            }
+        }
         request.setReviewStatus(status);
         return dataRequestRepository.save(request);
     }
@@ -89,7 +120,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public DataRequest updateRequest(Long requestId, DataRequest updatedRequest) {
         DataRequest request = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new RuntimeException("요청을 찾을 수 없습니다"));
 
         request.setPurpose(updatedRequest.getPurpose());
         request.setTitle(updatedRequest.getTitle());
@@ -137,7 +168,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public Answer updateAnswer(Long answerId, Answer updatedAnswer) {
         Answer answer = answerRepository.findById(answerId)
-                .orElseThrow(() -> new RuntimeException("Answer not found"));
+                .orElseThrow(() -> new RuntimeException("답변을 찾을 수 없습니다"));
 
         answer.setContent(updatedAnswer.getContent());
         return answerRepository.save(answer);
@@ -148,4 +179,52 @@ public class RequestImpl implements RequestService {
     public void deleteAnswer(Long answerId) {
         answerRepository.deleteById(answerId);
     }
+
+    @Override
+    public RequestStatsDto getRequestStats() {
+        LocalDate now = LocalDate.now();
+        LocalDate sixMonthsAgo = now.minusMonths(5).withDayOfMonth(1);
+
+        List<DataRequest> allRequests = dataRequestRepository.findAll();
+        Map<String, Long> totals = allRequests.stream()
+                .filter(req -> !req.getUploadDate().isBefore(sixMonthsAgo))
+                .collect(Collectors.groupingBy(
+                        req -> req.getUploadDate().withDayOfMonth(1).toString().substring(0, 7),
+                        Collectors.counting()
+                ));
+
+        Map<String, Integer> monthlyCounts = new LinkedHashMap<>();
+        for (int i = 5; i >= 0; i--) {
+            LocalDate month = now.minusMonths(i).withDayOfMonth(1);
+            String key = month.toString().substring(0, 7);
+            monthlyCounts.put(key, totals.getOrDefault(key, 0L).intValue());
+        }
+
+        List<String> keys = new ArrayList<>(monthlyCounts.keySet());
+        int currentTotal = monthlyCounts.get(keys.get(keys.size() - 1));
+        int lastTotal = keys.size() >= 2 ? monthlyCounts.get(keys.get(keys.size() - 2)) : 0;
+        int growth = lastTotal > 0 ? (int) Math.round(((double) (currentTotal - lastTotal) / lastTotal) * 100) : 0;
+
+        // PENDING 상태 필터링
+        Map<String, Long> pendingTotals = allRequests.stream()
+                .filter(req -> req.getReviewStatus() == DataRequest.ReviewStatus.PENDING)
+                .filter(req -> !req.getUploadDate().isBefore(sixMonthsAgo))
+                .collect(Collectors.groupingBy(
+                        req -> req.getUploadDate().withDayOfMonth(1).toString().substring(0, 7),
+                        Collectors.counting()
+                ));
+
+        Map<String, Integer> pendingMonthly = new LinkedHashMap<>();
+        for (String key : monthlyCounts.keySet()) {
+            pendingMonthly.put(key, pendingTotals.getOrDefault(key, 0L).intValue());
+        }
+
+        int currentPending = pendingMonthly.get(keys.get(keys.size() - 1));
+        int lastPending = keys.size() >= 2 ? pendingMonthly.get(keys.get(keys.size() - 2)) : 0;
+        int pendingGrowth = lastPending > 0 ? (int) Math.round(((double) (currentPending - lastPending) / lastPending) * 100) : 0;
+
+        return new RequestStatsDto(currentTotal, growth, currentPending, pendingGrowth, monthlyCounts);
+    }
+
+
 }
