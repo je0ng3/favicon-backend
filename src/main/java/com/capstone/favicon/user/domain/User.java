@@ -28,6 +28,7 @@ public class User {
 
     private Integer role = 0;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist

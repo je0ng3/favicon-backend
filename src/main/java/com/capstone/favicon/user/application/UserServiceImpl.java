@@ -5,6 +5,7 @@ import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
+import com.capstone.favicon.user.dto.MonthlyCountDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,9 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.Math.round;
 
@@ -131,6 +130,20 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> result = new HashMap<>();
         result.put("total", userRepository.countAllUsers());
         result.put("rate", rate);
+        return result;
+    }
+
+    @Override
+    public List<MonthlyCountDto> getUserOverview() {
+        LocalDateTime end = LocalDateTime.now().plusMonths(1).withDayOfMonth(1);
+        List<MonthlyCountDto> result = new ArrayList<>();
+        for (int i = 0; i<6; i++) {
+            LocalDateTime start = end.minusMonths(1);
+            int month = start.getMonthValue();
+            int count = userRepository.countUsersAt(start, end);
+            result.add(new MonthlyCountDto(month, count));
+            end = start;
+        }
         return result;
     }
 
