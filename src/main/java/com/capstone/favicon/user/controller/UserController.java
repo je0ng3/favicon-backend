@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
@@ -103,6 +105,16 @@ public class UserController {
             } else {
                 return ResponseEntity.ok().body(APIResponse.successAPI("일반 사용자", null));
             }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/user-stats")
+    public ResponseEntity<APIResponse<?>> getUserStats(){
+        try {
+            Map<String, Object> userStats = userService.getUserCount();
+            return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자 & 지난달 대비 증가추이 비율", userStats));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }

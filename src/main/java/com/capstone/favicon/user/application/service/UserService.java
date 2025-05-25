@@ -4,6 +4,8 @@ import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Map;
+
 public interface UserService {
     void sendCode(RegisterDto.checkEmail checkEmail);
     void checkCode(RegisterDto.checkCode checkCode);
@@ -12,4 +14,5 @@ public interface UserService {
     void logout(HttpServletRequest request);
     void delete(HttpServletRequest request);
     boolean checkAdmin(HttpServletRequest request);
+    Map<String, Object> getUserCount();
 }
