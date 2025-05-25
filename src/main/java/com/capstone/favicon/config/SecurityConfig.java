@@ -18,7 +18,7 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/**",
+                        .requestMatchers("/users/**", "/statistics/**",
                                 "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
                                 "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top10",
                                 "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "faq/{faqId}",

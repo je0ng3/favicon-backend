@@ -3,18 +3,14 @@ package com.capstone.favicon.user.controller;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.user.dto.LoginDto;
-import com.capstone.favicon.user.dto.MonthlyCountDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -107,26 +103,6 @@ public class UserController {
             } else {
                 return ResponseEntity.ok().body(APIResponse.successAPI("일반 사용자", null));
             }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
-    }
-
-    @GetMapping("/user-stats")
-    public ResponseEntity<APIResponse<?>> getUserStats() {
-        try {
-            Map<String, Object> userStats = userService.getUserCount();
-            return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자 & 지난달 대비 증가추이 비율", userStats));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
-    }
-
-    @GetMapping("/user-overview")
-    public ResponseEntity<APIResponse<?>> getUserOverview() {
-        try {
-            List<MonthlyCountDto> userOverview = userService.getUserOverview();
-            return ResponseEntity.ok().body(APIResponse.successAPI("사용자 개요", userOverview));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
