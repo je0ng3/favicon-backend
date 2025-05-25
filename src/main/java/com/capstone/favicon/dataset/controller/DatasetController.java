@@ -80,6 +80,12 @@ public class DatasetController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Map<String, Object>>> getMonthlyStats() {
+        return ResponseEntity.ok(datasetService.getMonthlyDatasetStats());
+    }
+
+
 //    @GetMapping("/search-sorted/{category}")
 //    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
 //        try {
