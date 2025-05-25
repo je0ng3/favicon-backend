@@ -3,6 +3,7 @@ package com.capstone.favicon.admin.controller;
 import com.capstone.favicon.admin.application.service.StatisticsService;
 import com.capstone.favicon.admin.dto.MonthlyCountDto;
 import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,16 @@ public class StatisticsController {
         try {
             List<MonthlyCountDto> userOverview = statisticsService.getUserOverview();
             return ResponseEntity.ok().body(APIResponse.successAPI("사용자 개요", userOverview));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/all-user")
+    public ResponseEntity<APIResponse<?>> getAllUser() {
+        try {
+            List<Object[]> users = statisticsService.getAllUsers();
+            return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자", users));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
