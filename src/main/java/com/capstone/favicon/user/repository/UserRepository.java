@@ -14,6 +14,7 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByUserId(Long userId);
     User findByEmail(String email);
+    void deleteByUserId(Long userId);
 
     @Query("SELECT u.userId, u.email, u.username FROM User  u WHERE u.role=0")
     List<Object[]> getAll();
