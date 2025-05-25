@@ -48,15 +48,20 @@ public class Dataset {
         this.description = description;
     }
 
-    public Dataset(DatasetTheme theme, String name, String title, String organization, String description, String s3Key) {
+    public Dataset(DatasetTheme theme, String name, String title, String organization, String description, String s3key,
+                   LocalDate createdDate, LocalDate updateDate, Integer view, Integer download) {
         this.datasetTheme = theme;
         this.name = name;
         this.title = title;
         this.organization = organization;
         this.description = description;
-        this.s3Key = s3Key;
-        this.createdDate = LocalDate.now();
+        this.s3Key = s3key;
+        this.createdDate = createdDate;
+        this.updateDate = updateDate;
+        this.view = view;
+        this.download = download;
     }
+
 
     protected Dataset() {}
 

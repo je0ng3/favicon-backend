@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -40,13 +41,14 @@ public class S3Controller {
         }
 
         String originalFileName = file.getOriginalFilename().trim();
-        String s3FileName = "preprocessing";
+        String directory = "preprocessing";
 
-        String fileUrl = s3Config.uploadFile(file, s3FileName);
+        String fileUrl = s3Config.uploadFile(file, directory);
 
         List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
 
-        DatasetMetadata metadata = MetadataParser.extractMetadata(originalFileName, datasetThemes);
+        String s3FileName = directory + "/" + originalFileName;
+        DatasetMetadata metadata = MetadataParser.extractMetadata(s3FileName, datasetThemes);
 
         DatasetTheme datasetTheme = datasetThemes.stream()
                 .filter(theme -> theme.getDatasetThemeId().equals(metadata.getDatasetThemeId()))
@@ -55,9 +57,23 @@ public class S3Controller {
 
         Dataset dataset = datasetRepository
                 .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
-                .orElseGet(() -> datasetRepository.save(
-                        new Dataset(datasetTheme, metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription(), s3FileName)
-                ));
+                .orElseGet(() -> {
+                    LocalDate lastModified = s3Config.getLastModifiedDate(s3FileName);
+                    return datasetRepository.save(
+                            new Dataset(
+                                    datasetTheme,
+                                    metadata.getName(),
+                                    metadata.getTitle(),
+                                    metadata.getOrganization(),
+                                    metadata.getDescription(),
+                                    s3FileName,
+                                    LocalDate.now(),
+                                    lastModified,
+                                    0,
+                                    0
+                            )
+                    );
+                });
 
         FileExtension type;
         try {
