@@ -4,6 +4,7 @@ import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 
+
 public interface UserService {
     void sendCode(RegisterDto.checkEmail checkEmail);
     void checkCode(RegisterDto.checkCode checkCode);

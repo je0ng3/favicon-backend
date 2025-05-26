@@ -1,24 +1,34 @@
 package com.capstone.favicon.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CorsConfigurationSource corsConfigurationSource;
+
+    public SecurityConfig(@Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) {
+        this.corsConfigurationSource = corsConfigurationSource;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf((csrfConfig) ->
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/email-check", "/users/code-check", "users/register",
+                        .requestMatchers("/users/**", "/statistics/**", "/admin/**",
                                 "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
                                 "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top10",
                                 "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "faq/{faqId}",
