@@ -81,8 +81,13 @@ public class DatasetController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<Map<String, Map<String, Object>>> getMonthlyStats() {
-        return ResponseEntity.ok(datasetService.getMonthlyDatasetStats());
+    public ResponseEntity<APIResponse<?>> getMonthlyStats() {
+        try {
+            Map<String, Map<String, Object>> stats = datasetService.getMonthlyDatasetStats();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
 

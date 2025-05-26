@@ -1,5 +1,6 @@
 package com.capstone.favicon.user.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.dto.DataRequestDto;
@@ -28,12 +29,16 @@ public class RequestController {
     }
 
     @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DataRequest> createRequest(
+    public ResponseEntity<APIResponse<?>> createRequest(
             @RequestPart("dataRequestDto") DataRequestDto dataRequestDto,
             @RequestPart("file") MultipartFile file) {
-
-        dataRequestDto.setFile(file);
-        return ResponseEntity.ok(requestService.createRequest(dataRequestDto));
+        try {
+            dataRequestDto.setFile(file);
+            DataRequest created = requestService.createRequest(dataRequestDto);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", created));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @PutMapping("/list/{requestId}/review")
@@ -42,8 +47,13 @@ public class RequestController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<RequestStatsDto> getRequestStats() {
-        return ResponseEntity.ok(requestService.getRequestStats());
+    public ResponseEntity<APIResponse<?>> getRequestStats() {
+        try {
+            RequestStatsDto stats = requestService.getRequestStats();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @GetMapping("/question")
