@@ -1,7 +1,10 @@
 package com.capstone.favicon.dataset.application;
 
+import org.springframework.stereotype.Service;
+
 import java.nio.file.Paths;
 
+@Service
 public class FilePathService {
 
     /**

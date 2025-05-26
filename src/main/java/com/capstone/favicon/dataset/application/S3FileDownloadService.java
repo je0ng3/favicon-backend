@@ -18,6 +18,8 @@ import java.io.IOException;
 public class S3FileDownloadService extends S3Config {
     @Autowired
     private ResourceService resourceService;
+    @Autowired
+    private FilePathService filePathService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -37,7 +39,7 @@ public class S3FileDownloadService extends S3Config {
     public File downloadFile(Long datasetId) throws IOException {
 
         // 다운로드 경로 설정
-        String downloadDir = FilePathService.getDownloadDir();
+        String downloadDir = filePathService.getDownloadDir();
 
         // 데이터셋 ID를 기반으로 파일 URL, 확장자 가져오기
         String fileUrl = resourceService.getResourceUrlByDatasetId(datasetId);

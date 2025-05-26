@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -99,9 +99,9 @@ public class UserController {
         try {
             boolean isAdmin = userService.checkAdmin(request);
             if (isAdmin) {
-                return ResponseEntity.ok().body(APIResponse.successAPI("관리자", null));
+                return ResponseEntity.ok().body(APIResponse.successAPI("관리자", 1));
             } else {
-                return ResponseEntity.ok().body(APIResponse.successAPI("일반 사용자", null));
+                return ResponseEntity.ok().body(APIResponse.successAPI("일반 사용자", 0));
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));

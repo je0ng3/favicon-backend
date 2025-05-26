@@ -1,11 +1,11 @@
-name: PR Build Test
+name: PR Build TEST
 
 on:
   pull_request:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +25,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: | 
+        run: |
           set -e
-          ./gradlew clean build
+          ./gradlew clean build -Dspring.profiles.active=local
