@@ -8,6 +8,11 @@ import java.util.List;
 public class MetadataParser {
 
     public static DatasetMetadata extractMetadata(String fileName, List<DatasetTheme> themes) {
+
+        if (!fileName.startsWith("preprocessing/")) {
+            throw new IllegalArgumentException("preprocessing 폴더 내 파일이 아닙니다: " + fileName);
+        }
+
         String pureFileName = fileName.substring(fileName.lastIndexOf("/") + 1);
         System.out.println("=== [DEBUG] 메타데이터 파싱용 파일명: " + pureFileName);
         String[] parts = pureFileName.split("_");

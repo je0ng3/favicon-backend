@@ -4,7 +4,6 @@ import com.capstone.favicon.dataset.application.service.RegionService;
 import com.capstone.favicon.dataset.repository.RegionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.capstone.favicon.dataset.domain.Region;
 
 import java.util.List;
 

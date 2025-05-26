@@ -4,17 +4,18 @@ import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.dto.DataRequestDto;
+import com.capstone.favicon.user.dto.RequestStatsDto;
 
 import java.util.List;
 
 public interface RequestService {
+    RequestStatsDto getRequestStats();
     List<DataRequest> getAllRequests();
     DataRequest createRequest(DataRequestDto dataRequestDto);
     DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status);
     List<Question> getQuestionsByUser(Long userId);
     List<Answer> getAnswersByQuestion(Long questionId);
 
-    // ✨ 추가된 기능
     DataRequest updateRequest(Long requestId, DataRequest updatedRequest);
     void deleteRequest(Long requestId);
 

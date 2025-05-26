@@ -6,9 +6,12 @@ import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
+import com.capstone.favicon.user.dto.RequestStatsDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,11 +31,14 @@ public class RequestController {
         }
     }
 
-    @PostMapping("/list")
-    public ResponseEntity<APIResponse<?>> createRequest(@RequestBody DataRequestDto dataRequestDto) {
+    @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<APIResponse<?>> createRequest(
+            @RequestPart("dataRequestDto") DataRequestDto dataRequestDto,
+            @RequestPart("file") MultipartFile file) {
         try {
-            DataRequest dataRequest = requestService.createRequest(dataRequestDto);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+            dataRequestDto.setFile(file);
+            DataRequest created = requestService.createRequest(dataRequestDto);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", created));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
@@ -43,6 +49,16 @@ public class RequestController {
         try {
             DataRequest dataRequest = requestService.updateReviewStatus(requestId, status);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<APIResponse<?>> getRequestStats() {
+        try {
+            RequestStatsDto stats = requestService.getRequestStats();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }

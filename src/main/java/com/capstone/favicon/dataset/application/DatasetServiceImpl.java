@@ -9,10 +9,14 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.TreeMap;
 
 @Service
 public class DatasetServiceImpl implements DatasetService {
@@ -114,4 +118,44 @@ public class DatasetServiceImpl implements DatasetService {
                         Collectors.mapping(Dataset::getName, Collectors.toList())
                 ));
     }
+
+    @Override
+    public Map<String, Map<String, Object>> getMonthlyDatasetStats() {
+        List<Dataset> datasets = datasetRepository.findAll();
+
+        if (datasets.isEmpty()) return Map.of();
+
+        Map<YearMonth, Long> monthlyCounts = datasets.stream()
+                .filter(d -> d.getCreatedDate() != null)
+                .collect(Collectors.groupingBy(
+                        d -> YearMonth.from(d.getCreatedDate()),
+                        TreeMap::new,
+                        Collectors.counting()
+                ));
+
+        YearMonth now = YearMonth.now();
+        List<YearMonth> last6Months = IntStream.rangeClosed(0, 5)
+                .mapToObj(i -> now.minusMonths(5 - i))
+                .toList();
+
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+        long cumulative = 0;
+        long prev = 0;
+
+        for (YearMonth ym : last6Months) {
+            long count = monthlyCounts.getOrDefault(ym, 0L);
+            cumulative += count;
+            int growthRate = (prev > 0) ? (int) Math.round(((double)(cumulative - prev) / prev) * 100) : 0;
+
+            result.put(ym.toString(), Map.of(
+                    "개수", cumulative,
+                    "증가율", growthRate
+            ));
+
+            prev = cumulative;
+        }
+
+        return result;
+    }
+
 }

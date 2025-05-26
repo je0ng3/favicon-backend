@@ -29,4 +29,6 @@ public interface DatasetService {
     List<Dataset> search(String text);
 
     Map<String, List<String>> getDatasetNameGroupByTheme();
+
+    Map<String, Map<String, Object>> getMonthlyDatasetStats();
 }

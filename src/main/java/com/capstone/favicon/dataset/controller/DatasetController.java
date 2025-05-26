@@ -123,6 +123,17 @@ public class DatasetController {
         }
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<APIResponse<?>> getMonthlyStats() {
+        try {
+            Map<String, Map<String, Object>> stats = datasetService.getMonthlyDatasetStats();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
+
+
 //    @GetMapping("/search-sorted/{category}")
 //    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
 //        try {

@@ -40,18 +40,32 @@ public class Dataset {
     @JoinColumn(name = "dataset_theme_id", nullable = false)
     private DatasetTheme datasetTheme;
 
-    public Dataset(DatasetTheme datasetTheme, String name, String title, String organization, String Description) {
-        this.datasetTheme = datasetTheme;
+    public Dataset(DatasetTheme theme, String name, String title, String organization, String description) {
+        this.datasetTheme = theme;
         this.name = name;
         this.title = title;
         this.organization = organization;
-        this.description = Description;
+        this.description = description;
     }
+
+    public Dataset(DatasetTheme theme, String name, String title, String organization, String description, String s3key,
+                   LocalDate createdDate, LocalDate updateDate, Integer view, Integer download) {
+        this.datasetTheme = theme;
+        this.name = name;
+        this.title = title;
+        this.organization = organization;
+        this.description = description;
+        this.s3Key = s3key;
+        this.createdDate = createdDate;
+        this.updateDate = updateDate;
+        this.view = view;
+        this.download = download;
+    }
+
 
     protected Dataset() {}
 
     @OneToOne(mappedBy = "dataset", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore
     private Resource resource;
 
     @OneToMany(mappedBy = "dataset", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

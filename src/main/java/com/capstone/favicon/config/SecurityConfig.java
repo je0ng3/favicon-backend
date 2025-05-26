@@ -18,15 +18,14 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/email-check", "/users/code-check", "users/register",
-                                "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "faq/{faqId}",
-                                "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top10",
-                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "faq/{faqId}",
-                                "/users/login", "/users/logout", "/users/admin-check", "/s3/upload", "/s3/delete/{resourceId}",
-                                "/users/delete-account", "/users/session-check", "/data-set", "/request/list","/request/list/{requestId}/review", "/request/{requestId}","/request/question",
-                                "/request/question/{questionId}",   "/request/answer", "/request/answer/{answerId}","/data-set/search-sorted", "/data-set/search-sorted/{category}",
-                                "/trend/**", "data-set/group-by-theme", "/region", "/analysis",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}").permitAll()
+                        .requestMatchers("/users/**", "/statistics/**", "/admin/**",
+                                "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "/faq/{faqId}",
+                                "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top9",
+                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "/faq/{faqId}",
+                                "/s3/upload", "/s3/delete/{resourceId}", "/analysis", "/data-set/stats", "/request/stats",
+                                "/data-set", "/request/list","/request/list/{requestId}/review", "/request/{requestId}","/request/question",
+                                "/request/question/{questionId}",	"/request/answer", "/request/answer/{answerId}","/trend/**", "/data-set/search-sorted", "/data-set/search-sorted/{category}",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}", "/data-set/group-by-theme", "/region").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())

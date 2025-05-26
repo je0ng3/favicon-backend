@@ -30,6 +30,7 @@ public class Resource {
     private String resourceUrl;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @JoinColumn(name = "dataset_id", referencedColumnName = "dataset_id", nullable = false)
     private Dataset dataset;
 
