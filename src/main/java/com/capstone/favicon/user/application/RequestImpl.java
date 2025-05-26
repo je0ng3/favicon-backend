@@ -1,5 +1,6 @@
 package com.capstone.favicon.user.application;
 
+import com.capstone.favicon.config.S3Config;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
@@ -14,6 +15,7 @@ import com.capstone.favicon.user.application.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -31,6 +33,7 @@ public class RequestImpl implements RequestService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
+    private final S3Config s3Config;
 
     @Override
     public List<DataRequest> getAllRequests() {
