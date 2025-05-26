@@ -12,10 +12,9 @@ import com.capstone.favicon.user.repository.DataRequestRepository;
 import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
 import com.capstone.favicon.user.application.service.RequestService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -27,13 +26,22 @@ import java.util.stream.Collectors;
 import java.util.TreeMap;
 
 @Service
-@RequiredArgsConstructor
 public class RequestImpl implements RequestService {
     private final DataRequestRepository dataRequestRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
     private final S3Config s3Config;
+
+    public RequestImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
+                       AnswerRepository answerRepository, UserRepository userRepository,
+                       @Qualifier("s3Config") S3Config s3Config) {
+        this.dataRequestRepository = dataRequestRepository;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+        this.userRepository = userRepository;
+        this.s3Config = s3Config;
+    }
 
     @Override
     public List<DataRequest> getAllRequests() {

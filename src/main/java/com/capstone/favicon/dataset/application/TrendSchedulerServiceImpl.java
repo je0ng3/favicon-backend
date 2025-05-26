@@ -1,5 +1,6 @@
 package com.capstone.favicon.dataset.application;
 
+import com.capstone.favicon.dataset.application.service.TrendSchedulerService;
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.Trend;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
@@ -14,13 +15,14 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class TrendScheduler {
+public class TrendSchedulerServiceImpl implements TrendSchedulerService {
 
     private final DatasetRepository datasetRepository;
     private final TrendRepository trendRepository;
 
     /*@Scheduled(cron = "0 * * * * *") */ // 매 1분마다 실행(테스트용으로 하기)
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정(실제 배포용으로)
+    @Override
     public void analyzeTrends() {
         List<Dataset> datasets = datasetRepository.findAllByOrderByDownloadDesc();
         LocalDate today = LocalDate.now();

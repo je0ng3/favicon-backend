@@ -1,8 +1,8 @@
 package com.capstone.favicon.dataset.controller;
 
 
-import com.capstone.favicon.dataset.application.RegionServiceImpl;
-import com.capstone.favicon.dataset.domain.Region;
+import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.dataset.application.service.RegionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +16,15 @@ import java.util.List;
 public class RegionController {
 
     @Autowired
-    private RegionServiceImpl regionServiceImpl;
+    private RegionService regionService;
 
     @GetMapping
-    public ResponseEntity<List<String>> getAllRegions() {
-        List<String> regions = regionServiceImpl.findAllRegionNames();
-        return ResponseEntity.ok(regions);
+    public ResponseEntity<APIResponse<?>> getAllRegions() {
+        try {
+            List<String> regions = regionService.findAllRegionNames();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", regions));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 }

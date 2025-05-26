@@ -9,6 +9,7 @@ import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.capstone.favicon.dataset.domain.FileExtension;
@@ -26,7 +27,7 @@ public class S3MetadataSyncService {
     private final DatasetThemeRepository datasetThemeRepository;
     private final ResourceRepository resourceRepository;
 
-    public S3MetadataSyncService(S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
+    public S3MetadataSyncService(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
         this.s3Config = s3Config;
         this.datasetRepository = datasetRepository;
         this.datasetThemeRepository = datasetThemeRepository;
@@ -71,7 +72,7 @@ public class S3MetadataSyncService {
                     resourceRepository.save(newResource);
                     System.out.println("[디버깅] Resource 저장 완료: " + rawFileName);
                 } else {
-                    
+
                     String rawFileName = fileName.substring(fileName.lastIndexOf("/") + 1);
                     Optional<Resource> optionalResourceFromDB = resourceRepository.findByDatasetAndResourceName(datasetToUse, rawFileName);
 

@@ -1,7 +1,6 @@
 package com.capstone.favicon.admin.application.service;
 
 import com.capstone.favicon.admin.dto.MonthlyCountDto;
-import com.capstone.favicon.user.domain.User;
 
 import java.util.List;
 import java.util.Map;
