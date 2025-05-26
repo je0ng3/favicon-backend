@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import java.io.InputStream;
 import java.net.URL;
 
-@Configuration
 @Service
 public class S3Config {
     protected final S3Client s3Client;
