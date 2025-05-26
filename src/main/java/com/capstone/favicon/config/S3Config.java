@@ -1,6 +1,7 @@
 package com.capstone.favicon.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -67,6 +68,33 @@ public class S3Config {
         s3Client.deleteObject(deleteRequest);
     }
 
+    public void deleteFileByKey(String key) {
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        s3Client.deleteObject(deleteRequest);
+    }
+
+    public void moveFile(String fromKey, String toKey) {
+        CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(fromKey)
+                .destinationBucket(bucketName)
+                .destinationKey(toKey)
+                .build();
+
+        s3Client.copyObject(copyRequest);
+
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fromKey)
+                .build();
+
+        s3Client.deleteObject(deleteRequest);
+    }
+
     public List<String> listFilesInBucket() {
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
                 .bucket(bucketName)
@@ -83,7 +111,7 @@ public class S3Config {
      * key에서 fileUrl 추출
      * @param fileUrl
      */
-    protected String extractKeyFromUrl(String fileUrl) {
+    public String extractKeyFromUrl(String fileUrl) {
         return fileUrl.substring(fileUrl.indexOf(bucketName) + bucketName.length() + 1);
     }
 
@@ -91,7 +119,7 @@ public class S3Config {
      * key에서 fileName 추출
      * @param key
      */
-    protected String extractFileNameFromKey(String key) {
+    public String extractFileNameFromKey(String key) {
         return key.substring(key.lastIndexOf("/")+1);
     }
 
@@ -116,4 +144,19 @@ public class S3Config {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
     }
+
+    public String extractKeyFromAnyUrl(String fileUrl) {
+        if (fileUrl.startsWith("s3://")) {
+            int bucketNameEnd = fileUrl.indexOf("/", 5); // after "s3://"
+            if (bucketNameEnd == -1) {
+                throw new IllegalArgumentException("Invalid s3 URL: " + fileUrl);
+            }
+            return fileUrl.substring(bucketNameEnd + 1);
+        } else if (fileUrl.contains(".amazonaws.com/")) {
+            return fileUrl.substring(fileUrl.indexOf(".com/") + 5);
+        } else {
+            return extractKeyFromUrl(fileUrl);
+        }
+    }
+
 }

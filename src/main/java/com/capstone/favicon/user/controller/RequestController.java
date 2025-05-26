@@ -1,15 +1,19 @@
 package com.capstone.favicon.user.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
+import com.capstone.favicon.user.dto.RequestStatsDto;
 import com.capstone.favicon.user.repository.DataRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,14 +28,32 @@ public class RequestController {
         return ResponseEntity.ok(requestService.getAllRequests());
     }
 
-    @PostMapping("/list")
-    public ResponseEntity<DataRequest> createRequest(@RequestBody DataRequestDto dataRequestDto) {
-        return ResponseEntity.ok(requestService.createRequest(dataRequestDto));
+    @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<APIResponse<?>> createRequest(
+            @RequestPart("dataRequestDto") DataRequestDto dataRequestDto,
+            @RequestPart("file") MultipartFile file) {
+        try {
+            dataRequestDto.setFile(file);
+            DataRequest created = requestService.createRequest(dataRequestDto);
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", created));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @PutMapping("/list/{requestId}/review")
     public ResponseEntity<DataRequest> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status) {
         return ResponseEntity.ok(requestService.updateReviewStatus(requestId, status));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<APIResponse<?>> getRequestStats() {
+        try {
+            RequestStatsDto stats = requestService.getRequestStats();
+            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 
     @GetMapping("/question")
