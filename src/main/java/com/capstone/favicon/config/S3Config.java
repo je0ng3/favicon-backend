@@ -1,6 +1,7 @@
 package com.capstone.favicon.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import java.io.InputStream;
 import java.net.URL;
 
+@Configuration
 @Service
 public class S3Config {
     protected final S3Client s3Client;
