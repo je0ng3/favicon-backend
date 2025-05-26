@@ -1,5 +1,6 @@
 package com.capstone.favicon.dataset.controller;
 
+import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.application.service.AnalysisService;
 import com.capstone.favicon.dataset.dto.AnalysisRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,12 @@ public class AnalysisController {
     private AnalysisService analysisService;
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> runAnalysis(@RequestBody AnalysisRequestDto requestDto) {
-        Map<String, Object> result = analysisService.analyze(requestDto);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<APIResponse<?>> runAnalysis(@RequestBody AnalysisRequestDto requestDto) {
+        try {
+            Map<String, Object> result = analysisService.analyze(requestDto);
+            return ResponseEntity.ok().body(APIResponse.successAPI("Success", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
     }
 }

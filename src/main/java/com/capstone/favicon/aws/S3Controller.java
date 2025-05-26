@@ -11,7 +11,6 @@ import com.capstone.favicon.dataset.repository.ResourceRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
 import com.capstone.favicon.config.APIResponse;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +22,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/s3")
-@RequiredArgsConstructor
 public class S3Controller {
 
     private final S3Config s3Config;
     private final DatasetRepository datasetRepository;
     private final DatasetThemeRepository datasetThemeRepository;
     private final ResourceRepository resourceRepository;
+
+    public S3Controller(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository,
+                        DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
+        this.s3Config = s3Config;
+        this.datasetRepository = datasetRepository;
+        this.datasetThemeRepository = datasetThemeRepository;
+        this.resourceRepository = resourceRepository;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<APIResponse<String>> uploadFile(@RequestParam("file") MultipartFile file) {

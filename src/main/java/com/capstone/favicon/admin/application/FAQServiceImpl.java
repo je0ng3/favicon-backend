@@ -10,17 +10,30 @@ import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class FAQServiceImpl implements FAQService {
 
     private final FAQRepository faqRepository;
     private final UserRepository userRepository;
+
+    @Override
+    public User getAdminUserFromSession(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Long id = (Long) session.getAttribute("id");
+        User user = userRepository.findByUserId(id);
+        if (user == null || user.getRole() != 1) {
+            throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
+        }
+        return user;
+    }
 
     @Override
     public void createFAQ(Long userId, FAQRequestDto request) {
@@ -52,16 +65,6 @@ public class FAQServiceImpl implements FAQService {
         FAQ faq = faqRepository.findById(faqId)
                 .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
         faqRepository.delete(faq);
-    }
-
-    public User getAdminUserFromSession(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long id = (Long) session.getAttribute("id");
-        User user = userRepository.findByUserId(id);
-        if (user == null || user.getRole() != 1) {
-            throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
-        }
-        return user;
     }
 
     @Override

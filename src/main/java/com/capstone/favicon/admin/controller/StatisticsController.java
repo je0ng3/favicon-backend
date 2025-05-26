@@ -3,7 +3,6 @@ package com.capstone.favicon.admin.controller;
 import com.capstone.favicon.admin.application.service.StatisticsService;
 import com.capstone.favicon.admin.dto.MonthlyCountDto;
 import com.capstone.favicon.config.APIResponse;
-import com.capstone.favicon.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,12 +1,8 @@
 package com.capstone.favicon.user.application;
 
-import com.capstone.favicon.dataset.domain.Dataset;
-import com.capstone.favicon.dataset.repository.DatasetRepository;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
-import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.repository.DataRepository;
-import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @RequiredArgsConstructor
