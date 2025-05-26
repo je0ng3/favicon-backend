@@ -22,7 +22,7 @@ public class SecurityConfig {
                                 "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "/faq/{faqId}",
                                 "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top9",
                                 "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "/faq/{faqId}",
-                                "/s3/upload", "/s3/delete/{resourceId}", "/analysis", "/data-set/stats", "/request/stats",
+                                "/s3/upload", "/s3/delete/{resourceId}", "/analysis", "/data-set/stats", "/request/stats", "/request/download/{requestId}",
                                 "/data-set", "/request/list","/request/list/{requestId}/review", "/request/{requestId}","/request/question",
                                 "/request/question/{questionId}",	"/request/answer", "/request/answer/{answerId}","/trend/**", "/data-set/search-sorted", "/data-set/search-sorted/{category}",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}", "/data-set/group-by-theme", "/region").permitAll()

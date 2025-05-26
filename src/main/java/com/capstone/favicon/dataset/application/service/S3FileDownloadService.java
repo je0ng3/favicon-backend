@@ -5,4 +5,6 @@ import java.io.IOException;
 
 public interface S3FileDownloadService {
     File downloadFile(Long datasetId) throws IOException;
+
+    File downloadFileFromDataRequest(Long dataRequestId) throws IOException;
 }

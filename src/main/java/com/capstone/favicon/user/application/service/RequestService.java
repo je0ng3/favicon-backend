@@ -1,5 +1,6 @@
 package com.capstone.favicon.user.application.service;
 
+import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
@@ -26,4 +27,8 @@ public interface RequestService {
     Answer createAnswer(Answer answer);
     Answer updateAnswer(Long answerId, Answer updatedAnswer);
     void deleteAnswer(Long answerId);
+
+
+    String getFileUrlByRequestId(Long requestId);
+    FileExtension getFileExtensionByRequestId(Long requestId);
 }

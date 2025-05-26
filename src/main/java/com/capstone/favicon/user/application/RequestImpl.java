@@ -1,6 +1,7 @@
 package com.capstone.favicon.user.application;
 
 import com.capstone.favicon.config.S3Config;
+import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
@@ -113,7 +114,6 @@ public class RequestImpl implements RequestService {
         return answerRepository.findByQuestion_User_UserId(questionId);
     }
 
-    // --- ✨ 추가 기능들 ---
 
     @Override
     @Transactional
@@ -240,5 +240,28 @@ public class RequestImpl implements RequestService {
                 monthlyCumulativeCounts
         );
     }
+
+
+
+
+    @Override
+    public String getFileUrlByRequestId(Long requestId) {
+        DataRequest dataRequest = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
+        return dataRequest.getFileUrl();
+    }
+
+    @Override
+    public FileExtension getFileExtensionByRequestId(Long requestId) {
+        DataRequest dataRequest = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
+        return extractExtension(dataRequest.getFileUrl());
+    }
+
+    private FileExtension extractExtension(String fileUrl) {
+        String ext = fileUrl.substring(fileUrl.lastIndexOf('.') + 1).toUpperCase();
+        return FileExtension.valueOf(ext);
+    }
+
 
 }
