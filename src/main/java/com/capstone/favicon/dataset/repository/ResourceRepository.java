@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface ResourceRepository extends JpaRepository<Resource, Long> {
+    Optional<Resource> findByDatasetAndResourceName(Dataset dataset, String resourceName);
     Optional<Resource> findByDatasetDatasetId(Long datasetId);
-    List<Resource> findByDataset (Dataset dataset);
+    List<Resource> findByDataset(Dataset dataset);
 }

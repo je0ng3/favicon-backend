@@ -10,12 +10,14 @@ import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class FAQServiceImpl implements FAQService {
 

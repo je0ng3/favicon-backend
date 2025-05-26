@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Region {
+
     @Id
     @Column(name = "region_name", nullable = false)
     private String regionName;

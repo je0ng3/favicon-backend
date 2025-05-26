@@ -33,15 +33,19 @@ public class Dataset {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "s3Key", unique = true)
+    private String s3Key;
+
     @ManyToOne
     @JoinColumn(name = "dataset_theme_id", nullable = false)
     private DatasetTheme datasetTheme;
 
-    public Dataset(DatasetTheme datasetTheme, String name, String title, String organization) {
+    public Dataset(DatasetTheme datasetTheme, String name, String title, String organization, String Description) {
         this.datasetTheme = datasetTheme;
         this.name = name;
         this.title = title;
         this.organization = organization;
+        this.description = Description;
     }
 
     protected Dataset() {}
