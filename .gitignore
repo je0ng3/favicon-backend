@@ -1,6 +1,7 @@
 # Ignore security and cors configuration files
-/src/main/java/com/capstone/favicon/config/SecurityConfig.java
-/src/main/java/com/capstone/favicon/config/CorsConfig.java
+/org
+.env
+*.pem
 
 HELP.md
 .gradle
@@ -49,8 +50,6 @@ out/
 ### ec2 ###
 favicon-key.pem
 
-application.properties
-SecurityConfig.java
 requirement.txt
 기상청_월별_processed.csv
 기후_감기_건강보험심사평가원.csv
