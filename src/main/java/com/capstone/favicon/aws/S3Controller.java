@@ -38,48 +38,50 @@ public class S3Controller {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<APIResponse<String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<APIResponse<String>> uploadFile(@RequestParam("files") MultipartFile[] files) {
         try {
-            if (file.isEmpty() || file.getOriginalFilename() == null || file.getOriginalFilename().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(APIResponse.errorAPI("파일 이름이 올바르지 않습니다."));
+            for (MultipartFile file : files) {
+                if (file.isEmpty() || file.getOriginalFilename() == null || file.getOriginalFilename().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(APIResponse.errorAPI("파일 이름이 올바르지 않습니다."));
+                }
+
+                String originalFileName = file.getOriginalFilename().trim();
+                String directory = "preprocessing";
+                String fileUrl = s3Config.uploadFile(file, directory);
+
+                List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
+                String s3FileName = directory + "/" + originalFileName;
+                DatasetMetadata metadata = MetadataParser.extractMetadata(s3FileName, datasetThemes);
+
+                DatasetTheme datasetTheme = datasetThemes.stream()
+                        .filter(theme -> theme.getDatasetThemeId().equals(metadata.getDatasetThemeId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("해당 dataset_theme_id가 존재하지 않습니다: " + metadata.getDatasetThemeId()));
+
+                Dataset dataset = datasetRepository
+                        .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
+                        .orElseGet(() -> {
+                            LocalDate lastModified = s3Config.getLastModifiedDate(s3FileName);
+                            return datasetRepository.save(new Dataset(
+                                    datasetTheme,
+                                    metadata.getName(),
+                                    metadata.getTitle(),
+                                    metadata.getOrganization(),
+                                    metadata.getDescription(),
+                                    s3FileName,
+                                    LocalDate.now(),
+                                    lastModified,
+                                    0,
+                                    0
+                            ));
+                        });
+
+                FileExtension type = FileExtension.valueOf(metadata.getType());
+                Resource resource = new Resource(dataset, originalFileName, type, fileUrl);
+                resourceRepository.save(resource);
             }
 
-            String originalFileName = file.getOriginalFilename().trim();
-            String directory = "preprocessing";
-            String fileUrl = s3Config.uploadFile(file, directory);
-
-            List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
-            String s3FileName = directory + "/" + originalFileName;
-            DatasetMetadata metadata = MetadataParser.extractMetadata(s3FileName, datasetThemes);
-
-            DatasetTheme datasetTheme = datasetThemes.stream()
-                    .filter(theme -> theme.getDatasetThemeId().equals(metadata.getDatasetThemeId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("해당 dataset_theme_id가 존재하지 않습니다: " + metadata.getDatasetThemeId()));
-
-            Dataset dataset = datasetRepository
-                    .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
-                    .orElseGet(() -> {
-                        LocalDate lastModified = s3Config.getLastModifiedDate(s3FileName);
-                        return datasetRepository.save(new Dataset(
-                                datasetTheme,
-                                metadata.getName(),
-                                metadata.getTitle(),
-                                metadata.getOrganization(),
-                                metadata.getDescription(),
-                                s3FileName,
-                                LocalDate.now(),
-                                lastModified,
-                                0,
-                                0
-                        ));
-                    });
-
-            FileExtension type = FileExtension.valueOf(metadata.getType());
-            Resource resource = new Resource(dataset, originalFileName, type, fileUrl);
-            resourceRepository.save(resource);
-
-            return ResponseEntity.ok(APIResponse.successAPI("파일이 업로드되었습니다", fileUrl));
+            return ResponseEntity.ok(APIResponse.successAPI("파일이 업로드되었습니다", null));
 
         } catch (IllegalArgumentException | IOException e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
@@ -98,7 +100,7 @@ public class S3Controller {
             Dataset dataset = resource.getDataset();
 
             s3Config.deleteFile(resource.getResourceUrl());
-            dataset.setResource(null); // 연결 해제
+            dataset.setResource(null);
 
             resourceRepository.delete(resource);
             resourceRepository.flush();

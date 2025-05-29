@@ -5,6 +5,7 @@ import com.capstone.favicon.dataset.application.service.FilePathService;
 import com.capstone.favicon.dataset.application.service.ResourceService;
 import com.capstone.favicon.dataset.application.service.S3FileDownloadService;
 import com.capstone.favicon.dataset.domain.FileExtension;
+import com.capstone.favicon.user.application.service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ public class S3FileDownloadServiceImpl extends S3Config implements S3FileDownloa
     private ResourceService resourceService;
     @Autowired
     private FilePathService filePathService;
+    @Autowired
+    private RequestService requestService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -88,4 +91,37 @@ public class S3FileDownloadServiceImpl extends S3Config implements S3FileDownloa
         // String encodedFileName = encodeFileName(fileName);
         return new File(downloadDir, fileName + "." + extension.name().toLowerCase());
     }
+
+
+
+    public File downloadFileFromDataRequest(Long dataRequestId) throws IOException {
+        String downloadDir = filePathService.getDownloadDir();
+
+        String fileUrl = requestService.getFileUrlByRequestId(dataRequestId);
+        FileExtension fileExtension = requestService.getFileExtensionByRequestId(dataRequestId);
+
+        String key = extractKeyFromUrl(fileUrl);
+        String fileName = extractFileNameFromKey(key);
+        String encodedFileName = encodeFileName(fileName);
+        File file = createFileWithExtension(downloadDir, encodedFileName, fileExtension);
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
+             FileOutputStream fos = new FileOutputStream(file)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = s3Object.read(buffer)) != -1) {
+                fos.write(buffer, 0, length);
+            }
+        }
+
+        return file;
+    }
+
+
+
 }

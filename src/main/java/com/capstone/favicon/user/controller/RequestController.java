@@ -1,6 +1,8 @@
 package com.capstone.favicon.user.controller;
 
 import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.dataset.application.service.S3FileDownloadService;
+import org.springframework.core.io.Resource;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.domain.Question;
@@ -8,11 +10,16 @@ import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
 import com.capstone.favicon.user.dto.RequestStatsDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -167,5 +174,27 @@ public class RequestController {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
     }
+
+
+
+    @Autowired
+    private S3FileDownloadService s3FileDownloadService;
+
+    @GetMapping("/download/{requestId}")
+    public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId) throws IOException {
+        File downloadedFile = s3FileDownloadService.downloadFileFromDataRequest(requestId);
+        Resource fileResource = new FileSystemResource(downloadedFile);
+        String fileName = downloadedFile.getName();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + fileName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(fileResource);
+    }
+
+
+
+
+
 
 }
