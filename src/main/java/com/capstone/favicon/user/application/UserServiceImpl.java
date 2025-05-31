@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(LoginDto loginDto, HttpServletRequest request) {
+    public String login(LoginDto loginDto, HttpServletRequest request) {
         String email = loginDto.getEmail();
         String password = loginDto.getPassword();
         User user = userRepository.findByEmail(email);
@@ -75,10 +75,10 @@ public class UserServiceImpl implements UserService {
         if (user.getPassword().equals(password)) {
             HttpSession session = request.getSession();
             session.setAttribute("id", user.getUserId());
+            return user.getUsername();
         } else {
             throw new BadCredentialsException("Wrong password");
         }
-
     }
 
     @Override

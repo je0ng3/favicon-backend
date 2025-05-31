@@ -9,7 +9,7 @@ public interface UserService {
     void sendCode(RegisterDto.checkEmail checkEmail);
     void checkCode(RegisterDto.checkCode checkCode);
     void join(RegisterDto registerDto);
-    void login(LoginDto loginDto, HttpServletRequest request);
+    String login(LoginDto loginDto, HttpServletRequest request);
     void logout(HttpServletRequest request);
     void delete(HttpServletRequest request);
     boolean checkAdmin(HttpServletRequest request);
