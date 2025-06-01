@@ -5,6 +5,7 @@ import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
+import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(LoginDto loginDto, HttpServletRequest request) {
+    public LoginResponseDto login(LoginDto loginDto, HttpServletRequest request) {
         String email = loginDto.getEmail();
         String password = loginDto.getPassword();
         User user = userRepository.findByEmail(email);
@@ -75,10 +76,10 @@ public class UserServiceImpl implements UserService {
         if (user.getPassword().equals(password)) {
             HttpSession session = request.getSession();
             session.setAttribute("id", user.getUserId());
+            return new LoginResponseDto(user.getUserId(), user.getUsername());
         } else {
             throw new BadCredentialsException("Wrong password");
         }
-
     }
 
     @Override

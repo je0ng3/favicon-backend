@@ -1,6 +1,5 @@
 package com.capstone.favicon.user.domain;
 
-import com.capstone.favicon.dataset.domain.Dataset;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,19 +9,13 @@ import lombok.Setter;
 @Setter
 @Table(name="scrap")
 public class Scrap {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long scrapId;
+
     private Long userId;
     private Long datasetId;
-
-//    @ManyToOne
-//    @JoinColumn(name = "dataset_id", nullable = false)
-//    private Dataset dataset;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+    private String title;
+    private String theme;
 }
 

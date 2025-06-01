@@ -2,7 +2,9 @@ package com.capstone.favicon.user.controller;
 
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
+import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -54,8 +56,8 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
-            userService.login(loginDto, request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", loginDto.getEmail()));
+            LoginResponseDto responseDto = userService.login(loginDto, request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", responseDto));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
