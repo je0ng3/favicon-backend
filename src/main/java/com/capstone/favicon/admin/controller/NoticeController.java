@@ -21,9 +21,9 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<?>> createNotice(@RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> createNotice(@RequestBody NoticeRequestDto request) {
         try {
-            noticeService.createNotice(noticeService.getAdminUserFromSession(httpRequest).getUserId(), request);
+            noticeService.createNotice(request);
             return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 등록되었습니다.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
@@ -31,9 +31,8 @@ public class NoticeController {
     }
 
     @PutMapping("/{noticeId}")
-    public ResponseEntity<APIResponse<?>> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeRequestDto request, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> updateNotice(@PathVariable Long noticeId, @RequestBody NoticeRequestDto request) {
         try {
-            noticeService.getAdminUserFromSession(httpRequest);
             noticeService.updateNotice(noticeId, request);
             return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 수정되었습니다.", null));
         } catch (Exception e) {
@@ -42,9 +41,8 @@ public class NoticeController {
     }
 
     @DeleteMapping("/{noticeId}")
-    public ResponseEntity<APIResponse<?>> deleteNotice(@PathVariable Long noticeId, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> deleteNotice(@PathVariable Long noticeId) {
         try {
-            noticeService.getAdminUserFromSession(httpRequest);
             noticeService.deleteNotice(noticeId);
             return ResponseEntity.ok().body(APIResponse.successAPI("공지사항이 삭제되었습니다.", null));
         } catch (Exception e) {

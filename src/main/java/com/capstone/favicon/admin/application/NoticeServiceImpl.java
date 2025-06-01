@@ -48,11 +48,8 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void createNotice(Long userId, NoticeRequestDto request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    public void createNotice(NoticeRequestDto request) {
         Notice notice = new Notice();
-        notice.setUser(user);
         notice.setTitle(request.getTitle());
         notice.setContent(request.getContent());
         notice.setLabel(request.getLabel());
@@ -117,67 +114,4 @@ public class NoticeServiceImpl implements NoticeService {
         return noticeRepository.save(notice);
     }
 
-    @Service
-    @RequiredArgsConstructor
-    public static class FAQServiceImpl implements FAQService {
-
-        private final FAQRepository faqRepository;
-        private final UserRepository userRepository;
-
-        @Override
-        public void createFAQ(Long userId, FAQRequestDto request) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-            FAQ faq = new FAQ();
-            faq.setUser(user);
-            faq.setCategory(request.getCategory());
-            faq.setQuestion(request.getQuestion());
-            faq.setAnswer(request.getAnswer());
-
-            faqRepository.save(faq);
-        }
-
-        @Override
-        public void updateFAQ(Long faqId, FAQRequestDto request) {
-            FAQ faq = faqRepository.findById(faqId)
-                    .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
-
-            faq.setCategory(request.getCategory());
-            faq.setQuestion(request.getQuestion());
-            faq.setAnswer(request.getAnswer());
-
-            faqRepository.save(faq);
-        }
-
-        @Override
-        public void deleteFAQ(Long faqId) {
-            FAQ faq = faqRepository.findById(faqId)
-                    .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
-            faqRepository.delete(faq);
-        }
-
-        public User getAdminUserFromSession(HttpServletRequest request) {
-            HttpSession session = request.getSession();
-            Long id = (Long) session.getAttribute("id");
-            User user = userRepository.findByUserId(id);
-            if (user == null || user.getRole() != 1) {
-                throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
-            }
-            return user;
-        }
-
-        @Override
-        public List<FAQResponseDto> getAllFAQs() {
-            List<FAQ> faqs = faqRepository.findAll();
-            return faqs.stream().map(FAQResponseDto::new).collect(Collectors.toList());
-        }
-
-        @Override
-        public FAQResponseDto getFAQById(Long faqId) {
-            FAQ faq = faqRepository.findById(faqId)
-                    .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
-            return new FAQResponseDto(faq);
-        }
-
-    }
 }

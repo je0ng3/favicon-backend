@@ -36,11 +36,8 @@ public class FAQServiceImpl implements FAQService {
     }
 
     @Override
-    public void createFAQ(Long userId, FAQRequestDto request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    public void createFAQ(FAQRequestDto request) {
         FAQ faq = new FAQ();
-        faq.setUser(user);
         faq.setCategory(request.getCategory());
         faq.setQuestion(request.getQuestion());
         faq.setAnswer(request.getAnswer());

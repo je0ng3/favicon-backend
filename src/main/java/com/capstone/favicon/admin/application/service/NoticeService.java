@@ -11,7 +11,7 @@ import java.util.List;
 public interface NoticeService {
     User getAdminUserFromSession(HttpServletRequest request);
 
-    void createNotice(Long userId, NoticeRequestDto request);
+    void createNotice(NoticeRequestDto request);
     void updateNotice(Long noticeId, NoticeRequestDto request);
     void deleteNotice(Long noticeId);
     List<NoticeResponseDto> getAllNotices();

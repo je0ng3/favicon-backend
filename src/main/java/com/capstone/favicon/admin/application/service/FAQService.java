@@ -10,7 +10,7 @@ import java.util.List;
 public interface FAQService {
     User getAdminUserFromSession(HttpServletRequest request);
 
-    void createFAQ(Long userId, FAQRequestDto request);
+    void createFAQ(FAQRequestDto request);
     void updateFAQ(Long faqId, FAQRequestDto request);
     void deleteFAQ(Long faqId);
     List<FAQResponseDto> getAllFAQs();

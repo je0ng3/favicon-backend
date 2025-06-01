@@ -20,33 +20,30 @@ public class FAQController {
     private final FAQService faqService;
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse<?>> createFAQ(@RequestBody FAQRequestDto request, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> createFAQ(@RequestBody FAQRequestDto request) {
         try {
-            User admin = faqService.getAdminUserFromSession(httpRequest);
-            faqService.createFAQ(admin.getUserId(), request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("관리자 "+admin.getUserId()+"가 FAQ를 생성하였습니다.", null));
+            faqService.createFAQ(request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("관리자가 FAQ를 생성하였습니다.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
     }
 
     @PutMapping("/{faqId}")
-    public ResponseEntity<APIResponse<?>> updateFAQ(@PathVariable Long faqId, @RequestBody FAQRequestDto request, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> updateFAQ(@PathVariable Long faqId, @RequestBody FAQRequestDto request) {
         try {
-            User admin = faqService.getAdminUserFromSession(httpRequest);
             faqService.updateFAQ(faqId, request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("관리자 : " + admin.getUserId() + " 가 FAQ를 수정했습니다.", null));
+            return ResponseEntity.ok().body(APIResponse.successAPI("관리자가 FAQ를 수정했습니다.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
     }
 
     @DeleteMapping("/{faqId}")
-    public ResponseEntity<APIResponse<?>> deleteFAQ(@PathVariable Long faqId, HttpServletRequest httpRequest) {
+    public ResponseEntity<APIResponse<?>> deleteFAQ(@PathVariable Long faqId) {
         try {
-            User admin = faqService.getAdminUserFromSession(httpRequest);
             faqService.deleteFAQ(faqId);
-            return ResponseEntity.ok().body(APIResponse.successAPI("관리자 : " + admin.getUserId() + " 가 FAQ를 삭제했습니다.", null));
+            return ResponseEntity.ok().body(APIResponse.successAPI("관리자가 FAQ를 삭제했습니다.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
