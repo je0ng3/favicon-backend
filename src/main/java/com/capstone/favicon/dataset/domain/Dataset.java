@@ -1,6 +1,5 @@
 package com.capstone.favicon.dataset.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
