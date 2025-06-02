@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,7 +93,7 @@ public class S3Config {
         s3Client.deleteObject(deleteRequest);
     }
 
-    public List<String> listFilesInBucket() {
+    /*public List<String> listFilesInBucket() {
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
                 .bucket(bucketName)
                 .build();
@@ -102,7 +103,34 @@ public class S3Config {
         return response.contents().stream()
                 .map(object -> object.key())
                 .collect(Collectors.toList());
+    }*/
+    public List<String> listFilesInBucket() {
+        List<String> allKeys = new ArrayList<>();
+        String continuationToken = null;
+
+        do {
+            ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .maxKeys(1000);
+
+            if (continuationToken != null) {
+                requestBuilder.continuationToken(continuationToken);
+            }
+
+            ListObjectsV2Response response = s3Client.listObjectsV2(requestBuilder.build());
+
+            List<String> keys = response.contents().stream()
+                    .map(S3Object::key)
+                    .collect(Collectors.toList());
+
+            allKeys.addAll(keys);
+
+            continuationToken = response.nextContinuationToken();
+        } while (continuationToken != null);
+
+        return allKeys;
     }
+
 
     /**
      * key에서 fileUrl 추출
