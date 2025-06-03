@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class FaviconApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(FaviconApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(FaviconApplication.class, args);
+    }
 
 }
