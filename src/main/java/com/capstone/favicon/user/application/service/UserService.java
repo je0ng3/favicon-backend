@@ -15,4 +15,5 @@ public interface UserService {
     void logout(HttpServletRequest request);
     void delete(HttpServletRequest request);
     boolean checkAdmin(HttpServletRequest request);
+    void deleteById(Long id);
 }
