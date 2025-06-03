@@ -20,7 +20,7 @@ public class SecurityConfig {
                         csrfConfig.disable()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/**", "/statistics/**", "/admin/**",
+                        .requestMatchers("/users/**", "/statistics/**", "/admin/**", "/gpt/chat",
                                 "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "/faq/{faqId}",
                                 "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top9",
                                 "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "/faq/{faqId}",
