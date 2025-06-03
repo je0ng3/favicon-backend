@@ -84,6 +84,18 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/delete-account/{id}")
+    public ResponseEntity<APIResponse<?>> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteById(id);
+            return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴하였습니다.", null));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
+        }
+    }
+
+
     @GetMapping("/session-check")
     public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
         try {

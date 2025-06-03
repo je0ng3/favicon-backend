@@ -97,6 +97,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void deleteById(Long id) {
+        User user = userRepository.findByUserId(id);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+        userRepository.delete(user);
+    }
+
+
+    @Override
     public boolean checkAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession();
         Long id = (Long) session.getAttribute("id");
