@@ -2,7 +2,7 @@ name: Deploy to DockerHub & EC2
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   build-and-push:
