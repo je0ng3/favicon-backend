@@ -1,9 +1,11 @@
-# Ignore security and cors configuration files
+## 환경 설정 및 인증
 /org
 .env
 *.pem
+favicon-key.pem
 
-HELP.md
+
+## 빌드 및 의존성
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -11,12 +13,18 @@ build/
 !**/src/test/**/build/
 
 
-.DS_Store
-._.DS_Store
-**/.DS_Store
-**/._.DS_Store
+## IDE 설정
 
-### STS ###
+### IntelliJ
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclips/ STS
 .apt_generated
 .classpath
 .factorypath
@@ -28,28 +36,27 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
-### NetBeans ###
+## NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
+
+## VS Code
 .vscode/
 
-### ec2 ###
-favicon-key.pem
 
+## 맥 시스템 파일
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
+
+## 기타
 requirement.txt
 기상청_월별_processed.csv
 기후_감기_건강보험심사평가원.csv
