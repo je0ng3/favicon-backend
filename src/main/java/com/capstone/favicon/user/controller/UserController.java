@@ -1,8 +1,7 @@
 package com.capstone.favicon.user.controller;
 
-import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.config.APIResponse;
-import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
@@ -73,18 +72,6 @@ public class UserController {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
         }
     }
-
-    @DeleteMapping("/delete-account/{id}")
-    public ResponseEntity<APIResponse<?>> deleteUser(@PathVariable Long id) {
-        try {
-            userService.deleteById(id);
-            return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴하였습니다.", null));
-        } catch (Exception e) {
-            String message = e.getMessage();
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
-        }
-    }
-
 
     @GetMapping("/session-check")
     public ResponseEntity<APIResponse<?>> checkSession(HttpServletRequest request) {
