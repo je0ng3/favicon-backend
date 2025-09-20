@@ -11,8 +11,7 @@ public interface UserService {
     void sendCode(RegisterDto.checkEmail checkEmail);
     void checkCode(RegisterDto.checkCode checkCode);
     void join(RegisterDto registerDto);
-    LoginResponseDto login(LoginDto loginDto, HttpServletRequest request);
-    void logout(HttpServletRequest request);
+    LoginResponseDto login(LoginDto loginDto);
     void delete(HttpServletRequest request);
     boolean checkAdmin(HttpServletRequest request);
     void deleteById(Long id);

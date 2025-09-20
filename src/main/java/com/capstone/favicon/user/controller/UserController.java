@@ -56,18 +56,8 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto, HttpServletRequest request){
         try {
-            LoginResponseDto responseDto = userService.login(loginDto, request);
+            LoginResponseDto responseDto = userService.login(loginDto);
             return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", responseDto));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request){
-        try {
-            userService.logout(request);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }

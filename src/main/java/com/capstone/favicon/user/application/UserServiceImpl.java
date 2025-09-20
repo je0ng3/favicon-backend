@@ -1,5 +1,6 @@
 package com.capstone.favicon.user.application;
 
+import com.capstone.favicon.security.JwtUtil;
 import com.capstone.favicon.user.application.service.MailService;
 import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.application.service.UserService;
@@ -28,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private MailService mailService;
     @Autowired
     private OTPService otpService;
+
+    private final JwtUtil jwtUtil;
 
     @Override
     public void sendCode(RegisterDto.checkEmail checkEmail) {
@@ -66,7 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponseDto login(LoginDto loginDto, HttpServletRequest request) {
+    public LoginResponseDto login(LoginDto loginDto) {
         String email = loginDto.getEmail();
         String password = loginDto.getPassword();
         User user = userRepository.findByEmail(email);
@@ -74,18 +77,11 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException(email);
         }
         if (user.getPassword().equals(password)) {
-            HttpSession session = request.getSession();
-            session.setAttribute("id", user.getUserId());
-            return new LoginResponseDto(user.getUserId(), user.getUsername());
+            String token = jwtUtil.createAccessToken(user);
+            return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
         } else {
-            throw new BadCredentialsException("Wrong password");
+            throw new BadCredentialsException("Invalid email or password");
         }
-    }
-
-    @Override
-    public void logout(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        session.removeAttribute("id");
     }
 
     @Override
