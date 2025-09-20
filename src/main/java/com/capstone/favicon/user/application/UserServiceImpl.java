@@ -9,29 +9,37 @@ import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import com.capstone.favicon.user.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private MailService mailService;
-    @Autowired
-    private OTPService otpService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
+    private final UserRepository userRepository;
+    private final MailService mailService;
+    private final OTPService otpService;
+    private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    @Value("${app.admin-emails}")
+    private String adminEmailsStr;
+    private Set<String> adminEmails;
+
+    @PostConstruct
+    public void init() {
+        adminEmails = Arrays.stream(adminEmailsStr.split(","))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+    }
 
     @Override
     public void sendCode(RegisterDto.checkEmail checkEmail) {
@@ -54,39 +62,33 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void join(RegisterDto registerDto) {
-        if (registerDto == null) {
-            throw new RuntimeException();
-        }
-        Set<String> adminEmail = Set.of("test@gmail.com");
         User user = new User();
         String email = registerDto.getEmail();
         user.setEmail(email);
         user.setUsername(registerDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        if (adminEmail.contains(email)) {
-            user.setRole(1);
+        if (adminEmails.contains(registerDto.getEmail())) {
+            user.setRole(1); // admin
         }
         userRepository.save(user);
     }
 
     @Override
     public LoginResponseDto login(LoginDto loginDto) {
-        String email = loginDto.getEmail();
-        String password = loginDto.getPassword();
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException(email);
+        User user = userRepository.findByEmail(loginDto.getEmail());
+        if (user == null || !passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("잘못된 이메일 또는 비번입니다.");
         }
-        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
-            String token = jwtUtil.createAccessToken(user);
-            return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
-        } else {
-            throw new BadCredentialsException("Invalid email or password");
-        }
+
+        String token = jwtUtil.createAccessToken(user);
+        return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
     }
 
     @Override
     public void delete(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+        }
         userRepository.delete(user);
     }
 

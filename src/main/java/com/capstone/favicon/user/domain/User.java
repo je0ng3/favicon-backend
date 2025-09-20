@@ -44,7 +44,7 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String roleName = switch (role) {
-            case 0 -> "ROLE_ADMIN";
+            case 1 -> "ROLE_ADMIN";
             default -> "ROLE_USER";
         };
         return List.of(new SimpleGrantedAuthority(roleName));
