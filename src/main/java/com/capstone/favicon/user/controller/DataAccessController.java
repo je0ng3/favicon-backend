@@ -4,7 +4,7 @@ package com.capstone.favicon.user.controller;
 import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
-import jakarta.servlet.http.HttpServletRequest;
+import com.capstone.favicon.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +21,9 @@ public class DataAccessController {
     private DataService dataService;
 
     @PostMapping("/scrap/{data-id}")
-    public ResponseEntity<APIResponse<?>> addScrap(@PathVariable("data-id") Long dataId, HttpServletRequest request) {
+    public ResponseEntity<APIResponse<?>> addScrap(@PathVariable("data-id") Long dataId, User user) {
         try {
-            dataService.addScrap(request, dataId);
+            dataService.addScrap(user, dataId);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
@@ -31,9 +31,9 @@ public class DataAccessController {
     }
 
     @DeleteMapping("/scrap/{scrap-id}")
-    public ResponseEntity<APIResponse<?>> deleteScrap(@PathVariable("scrap-id") Long scrapId, HttpServletRequest request) {
+    public ResponseEntity<APIResponse<?>> deleteScrap(@PathVariable("scrap-id") Long scrapId, User user) {
         try {
-            dataService.deleteScrap(request, scrapId);
+            dataService.deleteScrap(user, scrapId);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
@@ -41,9 +41,9 @@ public class DataAccessController {
     }
 
     @GetMapping("/scrap")
-    public ResponseEntity<APIResponse<?>> getScraps(HttpServletRequest request) {
+    public ResponseEntity<APIResponse<?>> getScraps(User user) {
         try {
-            List<Scrap> scraps = dataService.getScrap(request);
+            List<Scrap> scraps = dataService.getScrap(user);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", scraps));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));

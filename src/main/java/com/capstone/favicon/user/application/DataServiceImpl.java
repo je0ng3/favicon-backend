@@ -4,10 +4,9 @@ import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
+import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.ScrapResponseDto;
 import com.capstone.favicon.user.repository.DataRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,15 +24,13 @@ public class DataServiceImpl implements DataService {
     private DatasetRepository datasetRepository;
 
     @Override
-    public ScrapResponseDto addScrap(HttpServletRequest request, Long dataId) {
-        HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("id");
+    public ScrapResponseDto addScrap(User user, Long dataId) {
         Dataset dataset = datasetRepository.findById(dataId).orElse(null);
         if (dataset == null) {
             throw new RuntimeException();
         }
         Scrap scrap = new Scrap();
-        scrap.setUserId(userId);
+        scrap.setUserId(user.getUserId());
         scrap.setDatasetId(dataId);
         scrap.setTitle(dataset.getTitle());
         scrap.setTheme(dataset.getDatasetTheme().getTheme());
@@ -42,18 +39,14 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public void deleteScrap(HttpServletRequest request, Long scrapId) {
-        HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("id");
-        Scrap scrap = dataRepository.findByScrapIdAndUserId(scrapId, userId);
+    public void deleteScrap(User user, Long scrapId) {
+        Scrap scrap = dataRepository.findByScrapIdAndUserId(scrapId, user.getUserId());
         dataRepository.delete(scrap);
     }
 
     @Override
-    public List<Scrap> getScrap(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long userId = (Long) session.getAttribute("id");
-        return dataRepository.findAllByUserId(userId);
+    public List<Scrap> getScrap(User user) {
+        return dataRepository.findAllByUserId(user.getUserId());
     }
 
 }

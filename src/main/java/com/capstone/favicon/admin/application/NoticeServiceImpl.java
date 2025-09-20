@@ -1,19 +1,10 @@
 package com.capstone.favicon.admin.application;
 
-import com.capstone.favicon.admin.application.service.FAQService;
 import com.capstone.favicon.admin.application.service.NoticeService;
 import com.capstone.favicon.admin.domain.Notice;
 import com.capstone.favicon.admin.dto.NoticeRequestDto;
 import com.capstone.favicon.admin.dto.NoticeResponseDto;
 import com.capstone.favicon.admin.repository.NoticeRepository;
-import com.capstone.favicon.admin.domain.FAQ;
-import com.capstone.favicon.admin.dto.FAQRequestDto;
-import com.capstone.favicon.admin.dto.FAQResponseDto;
-import com.capstone.favicon.admin.repository.FAQRepository;
-import com.capstone.favicon.user.domain.User;
-import com.capstone.favicon.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,26 +17,6 @@ import java.util.stream.Collectors;
 public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final UserRepository userRepository;
-
-    @Override
-    public User getAdminUserFromSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new RuntimeException("세션이 존재하지 않습니다.");
-        }
-
-        Long id = (Long) session.getAttribute("id");
-        if (id == null) {
-            throw new RuntimeException("세션에 로그인 정보가 없습니다.");
-        }
-
-        User user = userRepository.findByUserId(id);
-        if (user == null || user.getRole() != 1) {
-            throw new RuntimeException("이 기능은 관리자만 접근 가능합니다.");
-        }
-        return user;
-    }
 
     @Override
     public void createNotice(NoticeRequestDto request) {
