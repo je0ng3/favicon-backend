@@ -3,14 +3,19 @@ package com.capstone.favicon.user.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +39,19 @@ public class User {
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        String roleName = switch (role) {
+            case 0 -> "ROLE_ADMIN";
+            default -> "ROLE_USER";
+        };
+        return List.of(new SimpleGrantedAuthority(roleName));
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 }
