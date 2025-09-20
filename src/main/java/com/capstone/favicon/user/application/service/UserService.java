@@ -1,9 +1,9 @@
 package com.capstone.favicon.user.application.service;
 
+import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
-import jakarta.servlet.http.HttpServletRequest;
 
 
 
@@ -12,7 +12,5 @@ public interface UserService {
     void checkCode(RegisterDto.checkCode checkCode);
     void join(RegisterDto registerDto);
     LoginResponseDto login(LoginDto loginDto);
-    void delete(HttpServletRequest request);
-    boolean checkAdmin(HttpServletRequest request);
-    void deleteById(Long id);
+    void delete(User user);
 }

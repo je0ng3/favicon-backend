@@ -9,15 +9,13 @@ import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
 import com.capstone.favicon.user.dto.RegisterDto;
 import com.capstone.favicon.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -85,23 +83,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long id = (Long) session.getAttribute("id");
-        User user = userRepository.findByUserId(id);
+    public void delete(User user) {
         userRepository.delete(user);
-    }
-
-    @Override
-    public boolean checkAdmin(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Long id = (Long) session.getAttribute("id");
-        User user = userRepository.findByUserId(id);
-        Integer role = user.getRole();
-        if (role == 1) {
-            return true;
-        }
-        return false;
     }
 
 }
