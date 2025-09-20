@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -27,6 +28,8 @@ public class UserServiceImpl implements UserService {
     private MailService mailService;
     @Autowired
     private OTPService otpService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final JwtUtil jwtUtil;
 
@@ -59,7 +62,7 @@ public class UserServiceImpl implements UserService {
         String email = registerDto.getEmail();
         user.setEmail(email);
         user.setUsername(registerDto.getUsername());
-        user.setPassword(registerDto.getPassword());
+        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         if (adminEmail.contains(email)) {
             user.setRole(1);
         }
@@ -74,7 +77,7 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new UsernameNotFoundException(email);
         }
-        if (user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             String token = jwtUtil.createAccessToken(user);
             return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
         } else {
