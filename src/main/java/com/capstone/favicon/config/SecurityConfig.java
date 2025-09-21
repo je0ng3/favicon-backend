@@ -1,10 +1,12 @@
 package com.capstone.favicon.config;
 
+import com.capstone.favicon.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -12,7 +14,34 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private static final String[] PUBLIC_ENDPOINTS = {
+            // 사용자/통계
+            "/users/**", "/statistics/**",
+            // 공지사항/FAQ
+            "/notice/list", "/notice/view/*", "/faq/list",
+            // 데이터셋
+            "/data-set/filter", "/data-set/count", "/data-set/ratio", "/data-set/incrementDownload/*",
+            "/data-set/top9", "/data-set/theme", "/data-set/*", "/data-set/category/*",
+            "/data-set/stats", "/data-set/search-sorted", "/data-set/search-sorted/*", "/data-set/download/*",
+            "/data-set/group-by-theme", "/data-set",
+            // 기타
+            "/analysis", "/trend/**", "/region"
+    };
+    private static final String[] ADMIN_ENDPOINTS = {
+            "/admin/**",
+            "/s3/upload",
+            "/s3/delete/*",
+            "/faq/create",
+            "/faq/*",
+            "/notice/create",
+            "/notice/*",
+    };
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -22,29 +51,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf((csrfConfig) ->
-                        csrfConfig.disable()
-                )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/**", "/statistics/**", "/admin/**", "/gpt/chat",
-                                "/notice/create", "/notice/list", "/notice/{noticeId}", "/notice/view/{noticeId}", "/faq/create", "/faq/{faqId}",
-                                "/data-set/filter", "/data-set/count","/data-set/ratio", "/data-set/incrementDownload/{datasetId}", "/data-set/top9",
-                                "/data-set/theme", "/data-set/{datasetId}", "/data-set/category/{themeId}", "/data-set/filter", "/faq/list", "/faq/{faqId}",
-                                "/s3/upload", "/s3/delete/{resourceId}", "/analysis", "/data-set/stats", "/request/stats", "/request/download/{requestId}",
-                                "/data-set", "/request/list","/request/list/{requestId}/review", "/request/{requestId}","/request/question",
-                                "/request/question/{questionId}",	"/request/answer", "/request/answer/{answerId}","/trend/**", "/data-set/search-sorted", "/data-set/search-sorted/{category}",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/data-set/download/{datasetId}", "/data-set/group-by-theme", "/region").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(formLogin -> formLogin.disable())
-                .sessionManagement(session -> session
-                        .sessionFixation().migrateSession()
-                        .maximumSessions(1)
-                )
-                .addFilterBefore(new Utf8Filter(), UsernamePasswordAuthenticationFilter.class);
+                .csrf(auth -> auth.disable())
+                .formLogin(auth -> auth.disable())
+                .httpBasic((auth) -> auth.disable())
+                .sessionManagement((session) -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .anyRequest().authenticated())
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
