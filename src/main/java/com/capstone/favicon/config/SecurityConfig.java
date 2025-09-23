@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             // 사용자/통계
-            "/users/**", "/statistics/**",
+            "/users/auth/**", "/statistics/**",
             // 공지사항/FAQ
             "/notice/list", "/notice/view/*", "/faq/list",
             // 데이터셋
