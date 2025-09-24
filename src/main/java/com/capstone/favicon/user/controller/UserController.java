@@ -1,16 +1,23 @@
 package com.capstone.favicon.user.controller;
 
 import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.security.JwtUtil;
+import com.capstone.favicon.security.RefreshToken;
+import com.capstone.favicon.security.UserDetailsServiceImpl;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
+import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
+import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 
 @RequiredArgsConstructor
@@ -18,8 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users/auth")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/email-check")
     public ResponseEntity<APIResponse<?>> emailCheck(@RequestBody RegisterDto.checkEmail checkEmail) {
@@ -57,6 +63,16 @@ public class UserController {
         try {
             LoginResponseDto responseDto = userService.login(loginDto);
             return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", responseDto));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<APIResponse<?>> refresh(@RequestBody RefreshRequest request) {
+        try {
+            LoginResponseDto responseDto = userService.refreshToken(request);
+            return ResponseEntity.ok().body(APIResponse.successAPI("Token refreshed.", responseDto));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
