@@ -3,6 +3,7 @@ package com.capstone.favicon.user.application.service;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
+import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
 
 
@@ -13,4 +14,6 @@ public interface UserService {
     void join(RegisterDto registerDto);
     LoginResponseDto login(LoginDto loginDto);
     void delete(User user);
+
+    LoginResponseDto refreshToken(RefreshRequest request);
 }

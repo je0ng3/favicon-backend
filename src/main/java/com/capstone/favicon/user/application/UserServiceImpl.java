@@ -1,13 +1,16 @@
 package com.capstone.favicon.user.application;
 
 import com.capstone.favicon.security.JwtUtil;
+import com.capstone.favicon.security.RefreshToken;
 import com.capstone.favicon.user.application.service.MailService;
 import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
+import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
+import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final OTPService otpService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${app.admin-emails}")
     private String adminEmailsStr;
@@ -81,7 +86,8 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtUtil.createAccessToken(user);
-        return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
+        String refresh = jwtUtil.createRefreshToken(user);
+        return new LoginResponseDto(user.getUserId(), user.getUsername(), token, refresh);
     }
 
     @Override
@@ -90,6 +96,23 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("존재하지 않는 유저입니다.");
         }
         userRepository.delete(user);
+    }
+
+    @Override
+    public LoginResponseDto refreshToken(RefreshRequest request) {
+        RefreshToken tokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+
+        if (tokenEntity.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token expired");
+        }
+
+        User user = userRepository.findById(tokenEntity.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String newAccessToken = jwtUtil.createAccessToken(user);
+
+        return new LoginResponseDto(user.getUserId(), user.getUsername(), newAccessToken, tokenEntity.getToken());
     }
 
 }
