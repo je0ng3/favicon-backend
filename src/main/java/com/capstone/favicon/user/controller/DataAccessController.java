@@ -7,6 +7,7 @@ import com.capstone.favicon.user.domain.Scrap;
 import com.capstone.favicon.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class DataAccessController {
     private final DataService dataService;
 
     @PostMapping("/scrap/{data-id}")
-    public ResponseEntity<APIResponse<?>> addScrap(@PathVariable("data-id") Long dataId, User user) {
+    public ResponseEntity<APIResponse<?>> addScrap(@PathVariable("data-id") Long dataId, @AuthenticationPrincipal User user) {
         try {
             dataService.addScrap(user, dataId);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
@@ -29,7 +30,7 @@ public class DataAccessController {
     }
 
     @DeleteMapping("/scrap/{scrap-id}")
-    public ResponseEntity<APIResponse<?>> deleteScrap(@PathVariable("scrap-id") Long scrapId, User user) {
+    public ResponseEntity<APIResponse<?>> deleteScrap(@PathVariable("scrap-id") Long scrapId, @AuthenticationPrincipal User user) {
         try {
             dataService.deleteScrap(user, scrapId);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
@@ -39,7 +40,7 @@ public class DataAccessController {
     }
 
     @GetMapping("/scrap")
-    public ResponseEntity<APIResponse<?>> getScraps(User user) {
+    public ResponseEntity<APIResponse<?>> getScraps(@AuthenticationPrincipal User user) {
         try {
             List<Scrap> scraps = dataService.getScrap(user);
             return ResponseEntity.ok().body(APIResponse.successAPI("Success", scraps));

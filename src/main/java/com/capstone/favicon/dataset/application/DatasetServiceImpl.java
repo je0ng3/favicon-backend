@@ -23,11 +23,12 @@ public class DatasetServiceImpl implements DatasetService {
 
     private final DatasetRepository datasetRepository;
 
-    private DatasetThemeRepository datasetThemeRepository;
+    private final DatasetThemeRepository datasetThemeRepository;
 
     @Autowired
-    public DatasetServiceImpl(DatasetRepository datasetRepository) {
+    public DatasetServiceImpl(DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository) {
         this.datasetRepository = datasetRepository;
+        this.datasetThemeRepository = datasetThemeRepository;
     }
 
     @Override
