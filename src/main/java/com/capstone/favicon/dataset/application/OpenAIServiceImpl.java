@@ -13,14 +13,18 @@ import java.util.Map;
 @Service
 public class OpenAIServiceImpl implements OpenAIService {
 
-    @Value("${openai.api-key}")
-    private String apiKey;
+    // 빈 생성 시 한 번만 만들어 커넥션풀을 재사용한다(요청마다 새로 만들면 TCP/TLS 핸드셰이크가 매번 발생).
+    private final WebClient client;
+
+    public OpenAIServiceImpl(@Value("${openai.api-key}") String apiKey) {
+        this.client = WebClient.builder()
+                .baseUrl("https://api.openai.com/v1/chat/completions")
+                .defaultHeader("Authorization", "Bearer " + apiKey)
+                .build();
+    }
 
     @Override
     public String chat(List<Map<String, String>> messages) {
-        WebClient client = WebClient.builder()
-                .baseUrl("https://api.openai.com/v1/chat/completions")
-                .defaultHeader("Authorization", "Bearer " + apiKey).build();
         Map<String, Object> body = Map.of(
                 "model", "gpt-3.5-turbo",
                 "messages", messages,
