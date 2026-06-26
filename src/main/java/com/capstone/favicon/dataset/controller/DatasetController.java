@@ -24,125 +24,68 @@ public class DatasetController {
 
     @GetMapping
     public ResponseEntity<APIResponse<?>> getDatasets() {
-        try {
-            List<Dataset> datasets = datasetService.findAllDatasets();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<Dataset> datasets = datasetService.findAllDatasets();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
     }
 
     @GetMapping("/top9")
     public ResponseEntity<APIResponse<?>> getTop9Datasets() {
-        try {
-            List<Dataset> datasets = datasetService.getTop9ByDownload();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<Dataset> datasets = datasetService.getTop9ByDownload();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
     }
 
     @PostMapping("/incrementDownload/{datasetId}")
     public ResponseEntity<APIResponse<?>> incrementDownload(@PathVariable Long datasetId) {
-        try {
-            datasetService.incrementDownloadCount(datasetId);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", null));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        datasetService.incrementDownloadCount(datasetId);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", null));
     }
 
     @GetMapping("/theme")
     public ResponseEntity<APIResponse<?>> filterByCategory(@RequestParam String theme) {
-        try {
-            List<DatasetTheme> datasetThemes = datasetService.filterByCategory(theme);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasetThemes));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<DatasetTheme> datasetThemes = datasetService.filterByCategory(theme);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasetThemes));
     }
 
     @GetMapping("/count")
     public ResponseEntity<APIResponse<?>> getTotalDatasetCount() {
-        try {
-            long count = datasetService.getTotalDatasetCount();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", count));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        long count = datasetService.getTotalDatasetCount();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", count));
     }
 
     @GetMapping("/{datasetId:\\d+}")
     public ResponseEntity<APIResponse<?>> getDatasetDetails(@PathVariable Long datasetId) {
-        try {
-            Optional<Dataset> dataset =  datasetService.getDatasetDetails(datasetId);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", dataset));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Optional<Dataset> dataset = datasetService.getDatasetDetails(datasetId);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", dataset));
     }
 
     @GetMapping("/ratio")
     public ResponseEntity<APIResponse<?>> getThemeStats() {
-        try {
-            Map<String, Map<String, Object>> themeStats = datasetService.getThemeStats();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", themeStats));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Map<String, Map<String, Object>> themeStats = datasetService.getThemeStats();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", themeStats));
     }
 
     @GetMapping("/category/{themeId}")
     public ResponseEntity<APIResponse<?>> getDatasetsByCategory(@PathVariable Long themeId) {
-        try {
-            List<Dataset> datasets = datasetService.getDatasetsByCategory(themeId);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<Dataset> datasets = datasetService.getDatasetsByCategory(themeId);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
     }
 
     @GetMapping("/search-sorted")
     public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
-        try {
-            List<Dataset> dataList = datasetService.search(searchDto.getText());
-            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
-        } catch (Exception e) {
-            String message = e.getMessage();
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
-        }
+        List<Dataset> dataList = datasetService.search(searchDto.getText());
+        return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
     }
 
     @GetMapping("/group-by-theme")
     public ResponseEntity<APIResponse<?>> getDatasetsGroupedByTheme() {
-        try {
-            Map<String, List<String>> result = datasetService.getDatasetNameGroupByTheme();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", result));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Map<String, List<String>> result = datasetService.getDatasetNameGroupByTheme();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", result));
     }
 
     @GetMapping("/stats")
     public ResponseEntity<APIResponse<?>> getMonthlyStats() {
-        try {
-            Map<String, Map<String, Object>> stats = datasetService.getMonthlyDatasetStats();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Map<String, Map<String, Object>> stats = datasetService.getMonthlyDatasetStats();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
     }
-
-
-//    @GetMapping("/search-sorted/{category}")
-//    public ResponseEntity<APIResponse<?>> searchWithCategory(@PathVariable("category") String category, @RequestBody SearchDto searchDto) {
-//        try {
-//            List<Dataset> dataList = datasetService.searchWithCategory(searchDto.getText(), category);
-//            return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
-//        } catch (Exception e) {
-//            String message = e.getMessage();
-//            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
-//        }
-//    }
 
 }

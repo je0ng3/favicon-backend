@@ -7,8 +7,8 @@ import com.capstone.favicon.user.domain.Scrap;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.ScrapResponseDto;
 import com.capstone.favicon.user.repository.DataRepository;
+import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,16 +18,14 @@ import java.util.List;
 @Service
 public class DataServiceImpl implements DataService {
 
-    @Autowired
-    private DataRepository dataRepository;
-    @Autowired
-    private DatasetRepository datasetRepository;
+    private final DataRepository dataRepository;
+    private final DatasetRepository datasetRepository;
 
     @Override
     public ScrapResponseDto addScrap(User user, Long dataId) {
         Dataset dataset = datasetRepository.findById(dataId).orElse(null);
         if (dataset == null) {
-            throw new RuntimeException();
+            throw new ResourceNotFoundException("스크랩할 데이터셋을 찾을 수 없습니다: " + dataId);
         }
         Scrap scrap = new Scrap();
         scrap.setUserId(user.getUserId());

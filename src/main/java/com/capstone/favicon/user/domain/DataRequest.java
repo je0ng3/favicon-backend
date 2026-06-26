@@ -8,7 +8,9 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@Table(name="data_request")
+@Table(name = "data_request", indexes = {
+        @Index(name = "idx_data_request_review_status", columnList = "review_status")
+})
 public class DataRequest {
 
     @Id

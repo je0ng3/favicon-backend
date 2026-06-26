@@ -26,8 +26,8 @@ public class SecurityConfig {
     private final JwtExceptionHandlerFilter jwtExceptionHandlerFilter;
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            // 사용자/통계
-            "/users/**", "/statistics/**",
+            // 사용자
+            "/users/auth/**",
             // 공지사항/FAQ
             "/notice/list", "/notice/view/*", "/faq/list",
             // 데이터셋
@@ -40,6 +40,7 @@ public class SecurityConfig {
     };
     private static final String[] ADMIN_ENDPOINTS = {
             "/admin/**",
+            "/statistics/**",
             "/s3/upload",
             "/s3/delete/*",
             "/faq/create",

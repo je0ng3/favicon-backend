@@ -5,6 +5,7 @@ import com.capstone.favicon.admin.domain.FAQ;
 import com.capstone.favicon.admin.dto.FAQRequestDto;
 import com.capstone.favicon.admin.dto.FAQResponseDto;
 import com.capstone.favicon.admin.repository.FAQRepository;
+import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class FAQServiceImpl implements FAQService {
     @Override
     public void updateFAQ(Long faqId, FAQRequestDto request) {
         FAQ faq = faqRepository.findById(faqId)
-                .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("FAQ를 찾을 수 없습니다."));
 
         faq.setCategory(request.getCategory());
         faq.setQuestion(request.getQuestion());
@@ -44,7 +45,7 @@ public class FAQServiceImpl implements FAQService {
     @Override
     public void deleteFAQ(Long faqId) {
         FAQ faq = faqRepository.findById(faqId)
-                .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("FAQ를 찾을 수 없습니다."));
         faqRepository.delete(faq);
     }
 
@@ -57,7 +58,7 @@ public class FAQServiceImpl implements FAQService {
     @Override
     public FAQResponseDto getFAQById(Long faqId) {
         FAQ faq = faqRepository.findById(faqId)
-                .orElseThrow(() -> new RuntimeException("FAQ를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("FAQ를 찾을 수 없습니다."));
         return new FAQResponseDto(faq);
     }
 

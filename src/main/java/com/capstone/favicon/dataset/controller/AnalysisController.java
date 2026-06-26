@@ -21,11 +21,7 @@ public class AnalysisController {
 
     @PostMapping
     public ResponseEntity<APIResponse<?>> runAnalysis(@RequestBody AnalysisRequestDto requestDto) {
-        try {
-            Map<String, Object> result = analysisService.analyze(requestDto);
-            return ResponseEntity.ok().body(APIResponse.successAPI("Success", result));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Map<String, Object> result = analysisService.analyze(requestDto);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", result));
     }
 }

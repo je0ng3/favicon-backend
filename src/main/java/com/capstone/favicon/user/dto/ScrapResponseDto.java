@@ -1,6 +1,8 @@
 package com.capstone.favicon.user.dto;
 
+import lombok.Getter;
 
+@Getter
 public class ScrapResponseDto {
 
     private Long datasetId;

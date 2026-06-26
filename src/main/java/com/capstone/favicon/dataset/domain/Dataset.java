@@ -10,7 +10,10 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(name="dataset")
+@Table(name = "dataset", indexes = {
+        @Index(name = "idx_dataset_download", columnList = "download"),
+        @Index(name = "idx_dataset_view", columnList = "view")
+})
 public class Dataset {
 
     @Id

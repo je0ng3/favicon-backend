@@ -6,7 +6,6 @@ import com.capstone.favicon.dataset.domain.Resource;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -16,8 +15,7 @@ import java.util.Optional;
 @Slf4j
 public class ResourceServiceImpl implements ResourceService {
 
-    @Autowired
-    private ResourceRepository resourceRepository;
+    private final ResourceRepository resourceRepository;
 
     /**
      * datasetID로 resourceUrl 가져오기

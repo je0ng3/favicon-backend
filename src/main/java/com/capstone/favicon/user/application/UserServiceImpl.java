@@ -1,13 +1,16 @@
 package com.capstone.favicon.user.application;
 
 import com.capstone.favicon.security.JwtUtil;
+import com.capstone.favicon.security.RefreshToken;
 import com.capstone.favicon.user.application.service.MailService;
 import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
+import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
+import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import com.capstone.favicon.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +18,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final OTPService otpService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${app.admin-emails}")
     private String adminEmailsStr;
@@ -74,6 +80,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public LoginResponseDto login(LoginDto loginDto) {
         User user = userRepository.findByEmail(loginDto.getEmail());
         if (user == null || !passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
@@ -81,15 +88,51 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtUtil.createAccessToken(user);
-        return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
+        String refresh = issueAndStoreRefreshToken(user);
+        return new LoginResponseDto(user.getUserId(), user.getUsername(), token, refresh);
     }
 
     @Override
+    @Transactional
     public void delete(User user) {
         if (user == null) {
             throw new IllegalArgumentException("존재하지 않는 유저입니다.");
         }
+        refreshTokenRepository.deleteByUserId(user.getUserId());
         userRepository.delete(user);
+    }
+
+    @Override
+    @Transactional
+    public LoginResponseDto refreshToken(RefreshRequest request) {
+        RefreshToken tokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new BadCredentialsException("유효하지 않은 refresh 토큰입니다."));
+
+        if (tokenEntity.getExpiryDate().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.deleteByUserId(tokenEntity.getUserId());
+            throw new BadCredentialsException("refresh 토큰이 만료되었습니다. 다시 로그인해주세요.");
+        }
+
+        User user = userRepository.findById(tokenEntity.getUserId())
+                .orElseThrow(() -> new BadCredentialsException("존재하지 않는 유저입니다."));
+
+        String newAccessToken = jwtUtil.createAccessToken(user);
+        String newRefreshToken = issueAndStoreRefreshToken(user);   // 토큰 회전(rotation)
+
+        return new LoginResponseDto(user.getUserId(), user.getUsername(), newAccessToken, newRefreshToken);
+    }
+
+    // 사용자당 refresh 토큰 1개만 유지하도록 기존 토큰을 지우고 새로 저장
+    private String issueAndStoreRefreshToken(User user) {
+        String refresh = jwtUtil.createRefreshToken(user);
+        refreshTokenRepository.deleteByUserId(user.getUserId());
+        refreshTokenRepository.save(RefreshToken.builder()
+                .userId(user.getUserId())
+                .userEmail(user.getEmail())
+                .token(refresh)
+                .expiryDate(LocalDateTime.now().plusDays(7))   // JwtUtil의 REFRESH_TOKEN_EXP_MS(7일)와 일치
+                .build());
+        return refresh;
     }
 
 }

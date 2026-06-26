@@ -8,6 +8,7 @@
 
 - [문서](#문서)
 - [리팩터링](#리팩터링)
+- [성능 최적화](#성능-최적화)
 - [주요 기능](#주요-기능)
 - [기술 스택](#기술-스택)
 - [아키텍처](#아키텍처)
@@ -42,9 +43,24 @@
 - 공개 / 관리자 / 인증 필요 엔드포인트를 `SecurityConfig`로 정리
 - 비밀번호 **BCrypt 해싱** 도입
 
+**리프레시 토큰 회전(rotation)**
+
+- `RefreshToken` 엔티티·리포지토리·서비스·컨트롤러 추가
+- 리프레시 토큰을 DB에 저장하고 재발급 시 **회전(rotate)**, 무효/만료 토큰은 **401** 응답
+- 인증 엔드포인트를 `/auth` 하위로 그룹화
+
+**중앙집중 예외 처리**
+
+- `@RestControllerAdvice`(`GlobalExceptionHandler`) 도입으로 컨트롤러의 반복 `try/catch` 제거
+- `ResourceNotFoundException` 등 도메인 예외를 일관된 JSON 응답으로 변환
+
+**보안 강화**
+
+- 스크랩 조회 NPE 수정, 비인증 데이터 접근 차단
+
 **코드 정리**
 
-- `UserService` 전반 리팩터링
+- `UserService` 전반 리팩터링, 생성자 주입 방식 통일
 - 중복된 회원 삭제 코드, 미사용 로그아웃·데드 코드 제거
 
 **설정 / 빌드 분리**
@@ -55,6 +71,15 @@
 **런타임 구성 조정**
 
 - 외부 의존(AWS S3 · OpenAI GPT) 빈을 런타임 등록에서 제외(`@ComponentScan` 필터) — 관련 자격증명 없이도 핵심 API가 구동되도록 함. (아래 [참고](#참고--알려진-특이사항)의 비활성 기능과 연결됩니다.)
+
+
+## 성능 최적화
+
+- **N+1 제거** — 트렌드 일일 집계에서 전일 순위를 한 번에 조회해 매칭하고 배치 저장.
+- **메모리 → DB 연산** — 순위·통계를 `COUNT`/`GROUP BY`로 DB에서 계산(전체 로드·선형 탐색 제거).
+- **인덱스 추가** — 정렬·필터·조인 컬럼(`download`, `rank_date`, `user_id` 등)에 인덱스.
+- **메일 비동기 발송** — `@Async` 스레드풀로 분리해 요청이 SMTP 응답을 기다리지 않음.
+- **WebClient 재사용 · gzip 압축** — OpenAI 클라이언트 빈 1회 생성, JSON 응답 gzip.
 
 
 ## 주요 기능
@@ -81,7 +106,7 @@
 | **Redis** | 이메일 인증 OTP(6자리)를 **3분 TTL**로 임시 저장하고, 검증 성공 시 즉시 삭제(1회용) | 짧게 살고 자동 만료돼야 하는 휘발성 데이터에 **키별 TTL**이 그대로 들어맞음. RDB에 넣고 만료를 직접 관리할 필요가 없음 |
 | **JWT (jjwt) + Spring Security** | stateless 인증. HS256 대칭키 서명, Access 1시간 / Refresh 7일, `userId`·`email` 클레임. 요청마다 Bearer 토큰을 검증해 `SecurityContext` 설정 | 서버 세션을 없애 **수평 확장**에 유리하고, SPA 프론트엔드와 토큰 기반으로 연동하기 깔끔함 (세션 기반에서 [리팩터링](#리팩터링)으로 전환) |
 | **AWS S3** | 데이터셋 파일·요청 첨부파일을 객체로 저장하고 버퍼 단위 **스트리밍** 업로드/다운로드 | 대용량 파일을 앱 서버·DB와 분리해 보관·배포. 객체 스토리지의 본래 용도에 부합 |
-| **WebClient** (spring-webflux) | OpenAI Chat API를 호출하는 HTTP 클라이언트 (`.block()`으로 동기 사용) | 외부 REST API 호출용 모던 HTTP 클라이언트로 사용. ※ 리액티브 서버가 아니라 **WebClient만** 쓰는 용도이며, 서버 자체는 Spring MVC(서블릿) 스택 |
+| **WebClient** (spring-webflux) | OpenAI Chat API를 호출하는 HTTP 클라이언트 (`.block()`으로 동기 사용, 빈으로 1회 생성해 재사용) | 외부 REST API 호출용 모던 HTTP 클라이언트로 사용. ※ 리액티브 서버가 아니라 **WebClient만** 쓰는 용도이며, 서버 자체는 Spring MVC(서블릿) 스택 |
 | **Python** (ProcessBuilder) | 데이터 분석을 `analysis.py` 별도 프로세스로 실행하고 stdout의 JSON을 Jackson으로 파싱 | 데이터 분석은 **Python 생태계**가 강점이라 분석은 Python에 맡기고 Java는 오케스트레이션·API 제공에 집중 (Dockerfile이 `python3`를 포함하는 이유) |
 | **Thymeleaf + Spring Mail** | 인증 메일 본문을 `email.html` 템플릿에 코드 변수를 바인딩해 렌더링한 뒤 HTML 메일로 발송 | 메일 HTML을 문자열로 조합하지 않고 **템플릿 + 변수**로 분리해 유지보수성↑ |
 | **springdoc (Swagger)** | 실행 중 API 문서 자동 생성·탐색 | 컨트롤러로부터 OpenAPI 문서를 자동화해 프론트엔드와의 API 협업을 쉽게 |
@@ -225,7 +250,7 @@ com.capstone.favicon
 
 ## 스케줄러
 
-`TrendSchedulerServiceImpl`이 매일 자정(`0 0 0 * * *`)에 전체 데이터셋을 다운로드 수 기준으로 정렬해 그날의 순위를 저장하고, 전일 순위와 비교해 **상승/하락/유지** 상태를 기록합니다.
+`TrendSchedulerServiceImpl`이 매일 자정(`0 0 0 * * *`)에 전체 데이터셋을 다운로드 수 기준으로 정렬해 그날의 순위를 저장하고, 전일 순위와 비교해 **상승/하락/유지** 상태를 기록합니다. 전일 순위는 한 번의 쿼리로 조회해 **N+1 없이** 매칭하고 `saveAll`로 배치 저장합니다([성능 최적화](#성능-최적화) 참고).
 
 ## 환경 변수
 
