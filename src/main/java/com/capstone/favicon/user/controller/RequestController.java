@@ -10,7 +10,6 @@ import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
 import com.capstone.favicon.user.dto.RequestStatsDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -177,8 +176,7 @@ public class RequestController {
 
 
 
-    @Autowired
-    private S3FileDownloadService s3FileDownloadService;
+    private final S3FileDownloadService s3FileDownloadService;
 
     @GetMapping("/download/{requestId}")
     public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId) throws IOException {

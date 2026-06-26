@@ -6,7 +6,6 @@ import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
 import com.capstone.favicon.user.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +16,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class DataAccessController {
 
-    @Autowired
-    private DataService dataService;
+    private final DataService dataService;
 
     @PostMapping("/scrap/{data-id}")
     public ResponseEntity<APIResponse<?>> addScrap(@PathVariable("data-id") Long dataId, User user) {

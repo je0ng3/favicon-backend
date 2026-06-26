@@ -8,7 +8,6 @@ import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.ScrapResponseDto;
 import com.capstone.favicon.user.repository.DataRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +17,8 @@ import java.util.List;
 @Service
 public class DataServiceImpl implements DataService {
 
-    @Autowired
-    private DataRepository dataRepository;
-    @Autowired
-    private DatasetRepository datasetRepository;
+    private final DataRepository dataRepository;
+    private final DatasetRepository datasetRepository;
 
     @Override
     public ScrapResponseDto addScrap(User user, Long dataId) {

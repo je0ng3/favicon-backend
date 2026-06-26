@@ -4,7 +4,6 @@ import com.capstone.favicon.admin.application.service.AdminService;
 import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import com.capstone.favicon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AdminServiceImpl implements AdminService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @Transactional

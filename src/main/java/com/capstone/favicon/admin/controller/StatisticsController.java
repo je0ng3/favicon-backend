@@ -4,7 +4,6 @@ import com.capstone.favicon.admin.application.service.StatisticsService;
 import com.capstone.favicon.admin.dto.MonthlyCountDto;
 import com.capstone.favicon.config.APIResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +18,7 @@ import java.util.Map;
 @RequestMapping("/statistics")
 public class StatisticsController {
 
-    @Autowired
-    private StatisticsService statisticsService;
+    private final StatisticsService statisticsService;
 
     @GetMapping("/user-stats")
     public ResponseEntity<APIResponse<?>> getUserStats() {
