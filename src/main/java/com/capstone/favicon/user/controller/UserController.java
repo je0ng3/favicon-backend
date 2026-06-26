@@ -12,7 +12,9 @@ import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
 import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +75,8 @@ public class UserController {
         try {
             LoginResponseDto responseDto = userService.refreshToken(request);
             return ResponseEntity.ok().body(APIResponse.successAPI("Token refreshed.", responseDto));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.errorAPI(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
