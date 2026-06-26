@@ -7,7 +7,9 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name="scrap")
+@Table(name = "scrap", indexes = {
+        @Index(name = "idx_scrap_user_id", columnList = "user_id")
+})
 public class Scrap {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

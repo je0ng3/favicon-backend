@@ -9,7 +9,10 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "trend")
+@Table(name = "trend", indexes = {
+        @Index(name = "idx_trend_rank_date", columnList = "rank_date"),
+        @Index(name = "idx_trend_dataset_rank_date", columnList = "dataset_id, rank_date")
+})
 @Getter
 @Setter
 @NoArgsConstructor
