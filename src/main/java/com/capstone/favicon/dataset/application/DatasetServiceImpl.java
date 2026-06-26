@@ -10,14 +10,15 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.TreeMap;
 
 @Service
 public class DatasetServiceImpl implements DatasetService {
@@ -123,19 +124,16 @@ public class DatasetServiceImpl implements DatasetService {
 
     @Override
     public Map<String, Map<String, Object>> getMonthlyDatasetStats() {
-        List<Dataset> datasets = datasetRepository.findAll();
-
-        if (datasets.isEmpty()) return Map.of();
-
-        Map<YearMonth, Long> monthlyCounts = datasets.stream()
-                .filter(d -> d.getCreatedDate() != null)
-                .collect(Collectors.groupingBy(
-                        d -> YearMonth.from(d.getCreatedDate()),
-                        TreeMap::new,
-                        Collectors.counting()
-                ));
-
         YearMonth now = YearMonth.now();
+        LocalDate from = now.minusMonths(5).atDay(1);
+
+        // 최근 6개월간 생성된 데이터셋 개수를 DB에서 (연,월)별로 집계한다.
+        Map<YearMonth, Long> monthlyCounts = new HashMap<>();
+        for (Object[] row : datasetRepository.countMonthlyCreatedSince(from)) {
+            YearMonth ym = YearMonth.of(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+            monthlyCounts.put(ym, ((Number) row[2]).longValue());
+        }
+
         List<YearMonth> last6Months = IntStream.rangeClosed(0, 5)
                 .mapToObj(i -> now.minusMonths(5 - i))
                 .toList();

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,12 @@ public interface DatasetRepository extends JpaRepository<Dataset, Long> {
 
     @Query("SELECT d FROM Dataset d JOIN FETCH d.datasetTheme")
     List<Dataset> findAllWithTheme();
+
+    /** :from 이후 생성된 데이터셋을 (연, 월) 단위로 묶어 개수를 센다. 반환: [year, month, count] */
+    @Query("SELECT YEAR(d.createdDate), MONTH(d.createdDate), COUNT(d) FROM Dataset d " +
+            "WHERE d.createdDate >= :from " +
+            "GROUP BY YEAR(d.createdDate), MONTH(d.createdDate)")
+    List<Object[]> countMonthlyCreatedSince(@Param("from") LocalDate from);
 
     @Query(value = """
     SELECT * FROM dataset
