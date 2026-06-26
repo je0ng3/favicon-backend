@@ -23,12 +23,9 @@ public class GPTController {
 
     @PostMapping("/chat")
     public ResponseEntity<APIResponse<?>> chat(@RequestBody Map<String, Object> request) {
+        @SuppressWarnings("unchecked")
         List<Map<String, String>> messages = (List<Map<String, String>>) request.get("messages");
-        try {
-            String response = openAIService.chat(messages);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success",response));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        String response = openAIService.chat(messages);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", response));
     }
 }

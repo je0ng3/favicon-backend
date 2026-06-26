@@ -19,12 +19,7 @@ public class AdminController {
 
     @DeleteMapping("/delete-user")
     public ResponseEntity<APIResponse<?>> deleteUser(@RequestParam("userId") Long userId) {
-        try {
-            adminService.deleteUser(userId);
-            return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴시켰습니다.", userId));
-        } catch (Exception e) {
-            String message = e.getMessage();
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(message));
-        }
+        adminService.deleteUser(userId);
+        return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴시켰습니다.", userId));
     }
 }

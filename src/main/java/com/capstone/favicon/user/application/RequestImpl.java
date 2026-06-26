@@ -13,6 +13,7 @@ import com.capstone.favicon.user.repository.DataRequestRepository;
 import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
 import com.capstone.favicon.user.application.service.RequestService;
+import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +55,7 @@ public class RequestImpl implements RequestService {
     public DataRequest createRequest(DataRequestDto dataRequestDto) {
         User user = userRepository.findByUserId(dataRequestDto.getUserId());
         if (user == null) {
-            throw new RuntimeException("유저 아이디를 찾을 수 없음: " + dataRequestDto.getUserId());
+            throw new ResourceNotFoundException("유저 아이디를 찾을 수 없음: " + dataRequestDto.getUserId());
         }
 
         DataRequest dataRequest = new DataRequest();
@@ -80,7 +81,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status) {
         DataRequest request = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("요청을 찾지 못했습니다"));
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾지 못했습니다"));
 
         String fileUrl = request.getFileUrl();
         if (fileUrl != null) {
@@ -119,7 +120,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public DataRequest updateRequest(Long requestId, DataRequest updatedRequest) {
         DataRequest request = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("요청을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
 
         request.setPurpose(updatedRequest.getPurpose());
         request.setTitle(updatedRequest.getTitle());
@@ -145,7 +146,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public Question updateQuestion(Long questionId, Question updatedQuestion) {
         Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
         question.setContent(updatedQuestion.getContent());
         return questionRepository.save(question);
@@ -167,7 +168,7 @@ public class RequestImpl implements RequestService {
     @Transactional
     public Answer updateAnswer(Long answerId, Answer updatedAnswer) {
         Answer answer = answerRepository.findById(answerId)
-                .orElseThrow(() -> new RuntimeException("답변을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
 
         answer.setContent(updatedAnswer.getContent());
         return answerRepository.save(answer);
@@ -247,14 +248,14 @@ public class RequestImpl implements RequestService {
     @Override
     public String getFileUrlByRequestId(Long requestId) {
         DataRequest dataRequest = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
         return dataRequest.getFileUrl();
     }
 
     @Override
     public FileExtension getFileExtensionByRequestId(Long requestId) {
         DataRequest dataRequest = dataRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 요청이 존재하지 않습니다: " + requestId));
         return extractExtension(dataRequest.getFileUrl());
     }
 

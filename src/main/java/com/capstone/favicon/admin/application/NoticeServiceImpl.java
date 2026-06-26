@@ -5,6 +5,7 @@ import com.capstone.favicon.admin.domain.Notice;
 import com.capstone.favicon.admin.dto.NoticeRequestDto;
 import com.capstone.favicon.admin.dto.NoticeResponseDto;
 import com.capstone.favicon.admin.repository.NoticeRepository;
+import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public void updateNotice(Long noticeId, NoticeRequestDto request) {
-        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
         notice.setTitle(request.getTitle());
         notice.setContent(request.getContent());
         notice.setLabel(request.getLabel());
@@ -41,7 +42,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public void deleteNotice(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
         noticeRepository.delete(notice);
     }
 
@@ -63,7 +64,7 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public NoticeResponseDto getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
         return new NoticeResponseDto(
                 notice.getNoticeId(),
@@ -78,7 +79,7 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public Notice getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 공지가 없습니다. ID: " + noticeId));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 공지가 없습니다. ID: " + noticeId));
 
         notice.incrementView();
 

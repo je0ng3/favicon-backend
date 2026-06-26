@@ -5,6 +5,7 @@ import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
 import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
+import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class DatasetServiceImpl implements DatasetService {
     @Transactional
     @Override
     public void incrementDownloadCount(Long datasetId) {
-        Dataset dataset = datasetRepository.findById(datasetId).orElseThrow(() -> new RuntimeException("Dataset not found with id: " + datasetId));
+        Dataset dataset = datasetRepository.findById(datasetId).orElseThrow(() -> new ResourceNotFoundException("Dataset not found with id: " + datasetId));
         dataset.setDownload(dataset.getDownload() + 1);
         datasetRepository.save(dataset);
     }

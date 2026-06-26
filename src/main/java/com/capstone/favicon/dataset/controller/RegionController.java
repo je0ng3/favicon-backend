@@ -20,11 +20,7 @@ public class RegionController {
 
     @GetMapping
     public ResponseEntity<APIResponse<?>> getAllRegions() {
-        try {
-            List<String> regions = regionService.findAllRegionNames();
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", regions));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<String> regions = regionService.findAllRegionNames();
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", regions));
     }
 }

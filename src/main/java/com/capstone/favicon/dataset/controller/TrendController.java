@@ -24,17 +24,13 @@ public class TrendController {
     // 트렌드 데이터 확인(당일 기준으로 조회 하면 됨)
     @GetMapping("/daily")
     public ResponseEntity<APIResponse<?>> getTrendsByDate(@RequestParam("date") LocalDate date) {
-        try {
-            List<Trend> trends = trendRepository.findAllByRankDate(date);
-            if (trends.isEmpty()) {
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(APIResponse.errorAPI("찾을 수 없음"));
-            }
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", trends));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        List<Trend> trends = trendRepository.findAllByRankDate(date);
+        if (trends.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(APIResponse.errorAPI("찾을 수 없음"));
         }
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", trends));
     }
 
     // 특정 Dataset의 트렌드 확인용
@@ -44,35 +40,27 @@ public class TrendController {
             @RequestParam("startDate") LocalDate startDate,
             @RequestParam("endDate") LocalDate endDate) {
 
-        try {
-            List<Trend> trends = trendRepository.findByDatasetIdAndDateRange(datasetId, startDate, endDate);
-            if (trends.isEmpty()) {
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(APIResponse.errorAPI("찾을 수 없음"));
-            }
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", trends));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
+        List<Trend> trends = trendRepository.findByDatasetIdAndDateRange(datasetId, startDate, endDate);
+        if (trends.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(APIResponse.errorAPI("찾을 수 없음"));
         }
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", trends));
     }
 
     // 특정 Dataset의 현재 순위 조회
     @GetMapping("/rank/{datasetId}")
     public ResponseEntity<APIResponse<?>> getCurrentRank(@PathVariable Long datasetId) {
         List<Dataset> datasets = datasetRepository.findAllByOrderByDownloadDesc();
-        try {
-            for (int i = 0; i < datasets.size(); i++) {
-                if (datasets.get(i).getDatasetId().equals(datasetId)) {
-                    return ResponseEntity.ok().body(APIResponse.successAPI("순위 조회 성공", i+1)); // 순위는 1부터 시작
-                }
+        for (int i = 0; i < datasets.size(); i++) {
+            if (datasets.get(i).getDatasetId().equals(datasetId)) {
+                return ResponseEntity.ok().body(APIResponse.successAPI("순위 조회 성공", i + 1)); // 순위는 1부터 시작
             }
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(APIResponse.errorAPI("찾을 수 없음"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
         }
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(APIResponse.errorAPI("찾을 수 없음"));
     }
 
 }

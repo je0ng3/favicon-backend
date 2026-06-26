@@ -29,12 +29,8 @@ public class DatasetThemeController {
             @RequestParam(name = "dataYear", required = false) Integer dataYear,
             @RequestParam(name = "fileType", required = false) String fileType) {
 
-        try {
-            List<DatasetTheme> datasets = datasetThemeService.getDatasets(region, dataYear, fileType);
-            return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<DatasetTheme> datasets = datasetThemeService.getDatasets(region, dataYear, fileType);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
     }
 
 }

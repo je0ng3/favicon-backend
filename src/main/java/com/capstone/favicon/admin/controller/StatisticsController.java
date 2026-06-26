@@ -22,31 +22,19 @@ public class StatisticsController {
 
     @GetMapping("/user-stats")
     public ResponseEntity<APIResponse<?>> getUserStats() {
-        try {
-            Map<String, Object> userStats = statisticsService.getUserCount();
-            return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자 & 지난달 대비 증가추이 비율", userStats));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        Map<String, Object> userStats = statisticsService.getUserCount();
+        return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자 & 지난달 대비 증가추이 비율", userStats));
     }
 
     @GetMapping("/user-overview")
     public ResponseEntity<APIResponse<?>> getUserOverview() {
-        try {
-            List<MonthlyCountDto> userOverview = statisticsService.getUserOverview();
-            return ResponseEntity.ok().body(APIResponse.successAPI("사용자 개요", userOverview));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<MonthlyCountDto> userOverview = statisticsService.getUserOverview();
+        return ResponseEntity.ok().body(APIResponse.successAPI("사용자 개요", userOverview));
     }
 
     @GetMapping("/all-user")
     public ResponseEntity<APIResponse<?>> getAllUser() {
-        try {
-            List<Object[]> users = statisticsService.getAllUsers();
-            return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자", users));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(APIResponse.errorAPI(e.getMessage()));
-        }
+        List<Object[]> users = statisticsService.getAllUsers();
+        return ResponseEntity.ok().body(APIResponse.successAPI("전체 사용자", users));
     }
 }
