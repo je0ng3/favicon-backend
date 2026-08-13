@@ -29,11 +29,13 @@ jobs:
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
 
+      # latest 는 배포(compose)가 참조하는 태그, 커밋 SHA 태그는 이력 추적·롤백용
       - name: Build Docker image
         run: |
           docker build \
           -f Dockerfile \
-          -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest .
+          -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest \
+          -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ github.sha }} .
 
       - name: DockerHub login
         uses: docker/login-action@v2
@@ -44,6 +46,7 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
+          docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ github.sha }}
 
       # EC2 인스턴스 운영 여부에 따라 repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다
       - name: Deploy to EC2
