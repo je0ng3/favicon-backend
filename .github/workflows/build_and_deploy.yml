@@ -29,12 +29,21 @@ jobs:
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
 
-      # latest 는 배포(compose)가 참조하는 태그, 커밋 SHA 태그는 이력 추적·롤백용
+      # main 은 배포(compose)가 참조하는 latest, develop 은 develop 태그로 분리하고
+      # 커밋 SHA 태그는 공통으로 붙여 이력 추적·롤백용으로 쓴다
+      - name: Set branch image tag
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "BRANCH_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "BRANCH_TAG=develop" >> $GITHUB_ENV
+          fi
+
       - name: Build Docker image
         run: |
           docker build \
           -f Dockerfile \
-          -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest \
+          -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ env.BRANCH_TAG }} \
           -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ github.sha }} .
 
       - name: DockerHub login
@@ -45,12 +54,13 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
+          docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ env.BRANCH_TAG }}
           docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:${{ github.sha }}
 
-      # EC2 인스턴스 운영 여부에 따라 repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다
+      # 운영 배포는 main 빌드만 대상으로 하고, EC2 인스턴스 운영 여부는
+      # repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다
       - name: Deploy to EC2
-        if: ${{ vars.EC2_DEPLOY_ENABLED == 'true' }}
+        if: ${{ github.ref_name == 'main' && vars.EC2_DEPLOY_ENABLED == 'true' }}
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
