@@ -29,18 +29,6 @@ jar {
     enabled = false
 }
 
-springBoot {
-	mainClass = 'com.capstone.favicon.FaviconApplication'
-}
-
-bootJar {
-	archiveFileName = 'app.jar'
-}
-
-jar {
-	enabled = false
-}
-
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
