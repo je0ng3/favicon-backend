@@ -32,7 +32,6 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-          --build-arg SPRING_PROFILES_ACTIVE=prob \
           -f Dockerfile \
           -t ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest .
 
