@@ -45,13 +45,15 @@ jobs:
         run: |
           docker push ${{ vars.DOCKERHUB_USERNAME}}/erica-favicon:latest
 
-#      - name: Deploy to EC2
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ubuntu
-#          key: ${{ secrets.EC2_SSH_KEY }}
-#          script: |
-#            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
-#            docker rm -f back 2>/dev/null || true
-#            docker compose -f docker-compose.yml --env-file .env up --build -d
+      # EC2 인스턴스 운영 여부에 따라 repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다
+      - name: Deploy to EC2
+        if: ${{ vars.EC2_DEPLOY_ENABLED == 'true' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
+            docker rm -f back 2>/dev/null || true
+            docker compose -f docker-compose.yml --env-file .env up --build -d
