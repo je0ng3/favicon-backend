@@ -36,7 +36,9 @@ public class SecurityConfig {
             "/data-set/stats", "/data-set/search-sorted", "/data-set/search-sorted/*", "/data-set/download/*",
             "/data-set/group-by-theme", "/data-set",
             // 기타
-            "/analysis", "/trend/**", "/region"
+            "/analysis", "/trend/**", "/region",
+            // 배포 헬스체크 (show-details=never 라 상태값만 노출)
+            "/actuator/health"
     };
     private static final String[] ADMIN_ENDPOINTS = {
             "/admin/**",
