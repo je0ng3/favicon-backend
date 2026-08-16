@@ -4,16 +4,24 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    restart: unless-stopped
     command:
       - redis-server
     networks:
       - backend-network
 
   backend:
-    image: 211i2/erica-backend:latest
+    # 배포 스크립트가 커밋 SHA 태그를 넘긴다. 기본값(:-latest)을 두면 롤백 직후에도
+    # Hub 의 latest 가 여전히 불량 이미지라 그게 조용히 다시 뜬다.
+    image: ${IMAGE_NAME:?IMAGE_NAME must be set by the deploy workflow}:${IMAGE_TAG:?IMAGE_TAG must be set to a commit SHA tag}
     container_name: backend
+    # --env-file 은 compose 파일의 ${...} 치환에만 쓰이고 컨테이너에는 주입되지 않는다
+    env_file:
+      - .env
     ports:
       - "8080:8080"
+    # 재부팅 시 compose 를 다시 돌리지 않아도 같은 이미지로 복구된다(= 롤백 상태 유지)
+    restart: unless-stopped
     networks:
       - backend-network
     depends_on:
