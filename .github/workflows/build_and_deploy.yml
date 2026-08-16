@@ -62,8 +62,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # 이걸 빼먹으면 호스트에 남은 옛 compose 파일이 쓰여서 태그 고정도 롤백도 무동작이 된다
+      - name: Copy deploy files to EC2
+        if: ${{ github.ref_name == 'main' && vars.EC2_DEPLOY_ENABLED == 'true' }}
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,.env.example"
+          target: /home/ubuntu
+          overwrite: true
+
       # 운영 배포는 main 빌드만 대상으로 하고, EC2 인스턴스 운영 여부는
-      # repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다
+      # repository variable EC2_DEPLOY_ENABLED('true'/'false')로 켜고 끈다.
+      # 배포 후 헬스체크가 통과하지 못하면 마지막 정상 이미지로 되돌리고 job 을 실패시킨다.
       - name: Deploy to EC2
         if: ${{ github.ref_name == 'main' && vars.EC2_DEPLOY_ENABLED == 'true' }}
         uses: appleboy/ssh-action@v1.0.3
@@ -71,7 +84,103 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          # 최악의 경로(헬스체크 4분 + 롤백 후 4분 + pull 2회)를 담지 못하면 롤백 도중 세션이 끊긴다
+          command_timeout: 20m
           script: |
-            docker pull ${{ vars.DOCKERHUB_USERNAME }}/erica-favicon:latest
-            docker rm -f back 2>/dev/null || true
-            docker compose -f docker-compose.yml --env-file .env up --build -d
+            set -euo pipefail
+
+            cd /home/ubuntu
+
+            IMAGE="${{ vars.DOCKERHUB_USERNAME }}/erica-favicon"
+            NEW_REF="$IMAGE:${{ github.sha }}"
+            HEALTH_URL="http://localhost:8080/actuator/health"
+            LAST_GOOD_FILE="/home/ubuntu/.last-good-image"
+            RETRIES=24
+            INTERVAL=5
+
+            # .env 선검증: 키 하나만 빠져도 기동에 실패하므로 컨테이너를 내리기 전에 멈춘다
+            missing=""
+            while IFS= read -r line || [ -n "$line" ]; do
+              case "$line" in ''|'#'*) continue ;; esac
+              key="${line%%=*}"
+              grep -qE "^[[:space:]]*${key}=" .env || missing="$missing $key"
+            done < .env.example
+            if [ -n "$missing" ]; then
+              echo "::error::/home/ubuntu/.env is missing required keys:$missing"
+              exit 1
+            fi
+
+            # 롤백 좌표는 파일에 적어 둔 마지막 정상 이미지를 쓴다(컨테이너에서 역산하면 태그가 어긋난다)
+            PREV_REF=""
+            if [ -f "$LAST_GOOD_FILE" ]; then
+              PREV_REF="$(cat "$LAST_GOOD_FILE")"
+            fi
+            echo "rollback_ref=${PREV_REF:-none} new=$NEW_REF"
+
+            deploy() {  # $1 = 전체 이미지 참조(repo:tag)
+              IMAGE_NAME="${1%:*}" IMAGE_TAG="${1##*:}" \
+                docker compose -f docker-compose.yml --env-file .env up -d
+            }
+
+            health_check() {
+              i=1
+              while [ "$i" -le "$RETRIES" ]; do
+                # 본문 부분매치 대신 HTTP 코드로 판정한다(-f 가 DOWN 의 503 을 걸러준다)
+                if curl -fsS --max-time 5 -o /dev/null "$HEALTH_URL" 2>/dev/null; then
+                  echo "health check passed on attempt $i"
+                  return 0
+                fi
+                if [ "$i" -eq "$RETRIES" ]; then break; fi
+                echo "health check attempt $i/$RETRIES not ready, waiting ${INTERVAL}s"
+                sleep "$INTERVAL"
+                i=$((i + 1))
+              done
+              return 1
+            }
+
+            rollback() {
+              if [ -z "$PREV_REF" ]; then
+                echo "::error::no known-good image recorded, cannot roll back automatically"
+                exit 1
+              fi
+              # 직전 이미지는 보통 로컬에 남아 있어 pull 실패는 치명적이지 않다
+              echo "rolling back to $PREV_REF"
+              if ! docker pull "$PREV_REF"; then
+                if ! docker image inspect "$PREV_REF" >/dev/null 2>&1; then
+                  echo "::error::rollback image $PREV_REF not available locally or on registry"
+                  exit 1
+                fi
+                echo "::warning::pull failed, using local copy of $PREV_REF"
+              fi
+              if ! deploy "$PREV_REF"; then
+                echo "::error::rollback compose up failed, manual intervention needed"
+                exit 1
+              fi
+              if health_check; then
+                echo "::warning::rolled back to $PREV_REF and it is healthy"
+              else
+                echo "::error::rollback to $PREV_REF is also unhealthy, manual intervention needed"
+              fi
+              exit 1
+            }
+
+            docker pull "$NEW_REF"
+
+            # 그냥 호출하면 set -e 가 여기서 끝내버려, 옛 컨테이너가 내려간 채 롤백 없이 서비스가 죽는다
+            if ! deploy "$NEW_REF"; then
+              echo "::error::compose up failed for $NEW_REF"
+              docker logs --tail=200 backend 2>&1 || true
+              rollback
+            fi
+
+            if ! health_check; then
+              echo "::error::health check failed for $NEW_REF"
+              docker logs --tail=200 backend 2>&1 || true
+              rollback
+            fi
+
+            echo "deploy succeeded: $NEW_REF"
+            echo "$NEW_REF" > "$LAST_GOOD_FILE"
+
+            # dangling 만 지우면 SHA 태그 이미지가 쌓여 디스크가 찬다(사용 중 이미지는 -a 로도 안 지워진다)
+            docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
