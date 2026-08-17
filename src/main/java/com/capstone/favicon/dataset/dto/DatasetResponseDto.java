@@ -6,7 +6,8 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 
-/** 엔티티를 그대로 내보내면 resource/downloadSet 이 직렬화 중에 지연 로딩되어 N+1 이 난다. */
+/** 엔티티를 그대로 내보내면 downloadSet 이 직렬화 중에 지연 로딩되어 N+1 이 난다.
+ *  resource 는 mappedBy @OneToOne 이라 어차피 조회 시점에 함께 로딩되므로 평탄화해서 유지한다. */
 @Getter
 @AllArgsConstructor
 public class DatasetResponseDto {
@@ -26,6 +27,10 @@ public class DatasetResponseDto {
     private String s3Key;
     private Long datasetThemeId;
     private String theme;
+    private Long resourceId;
+    private String resourceName;
+    private String resourceType;
+    private String resourceUrl;
 
     public static DatasetResponseDto from(Dataset dataset) {
         return new DatasetResponseDto(
@@ -43,7 +48,12 @@ public class DatasetResponseDto {
                 dataset.getAnalysis(),
                 dataset.getS3Key(),
                 dataset.getDatasetTheme() == null ? null : dataset.getDatasetTheme().getDatasetThemeId(),
-                dataset.getDatasetTheme() == null ? null : dataset.getDatasetTheme().getTheme()
+                dataset.getDatasetTheme() == null ? null : dataset.getDatasetTheme().getTheme(),
+                dataset.getResource() == null ? null : dataset.getResource().getResourceId(),
+                dataset.getResource() == null ? null : dataset.getResource().getResourceName(),
+                dataset.getResource() == null || dataset.getResource().getType() == null
+                        ? null : dataset.getResource().getType().name(),
+                dataset.getResource() == null ? null : dataset.getResource().getResourceUrl()
         );
     }
 }

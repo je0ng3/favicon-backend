@@ -11,6 +11,7 @@ public class NoticeResponseDto {
     private String title;
     private String content;
     private String createDate;
+    private String updateDate;
     private int view;
     private String label;
 
@@ -20,6 +21,7 @@ public class NoticeResponseDto {
                 notice.getTitle(),
                 notice.getContent(),
                 notice.getCreateDate().toString(),
+                notice.getUpdateDate() == null ? null : notice.getUpdateDate().toString(),
                 notice.getView(),
                 notice.getLabel().name()
         );
