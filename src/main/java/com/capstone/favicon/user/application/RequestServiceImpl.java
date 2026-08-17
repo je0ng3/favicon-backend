@@ -113,7 +113,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<Answer> getAnswersByQuestion(Long questionId) {
-        return answerRepository.findByQuestion_User_UserId(questionId);
+        return answerRepository.findByQuestion_QuestionId(questionId);
     }
 
 
@@ -123,11 +123,11 @@ public class RequestServiceImpl implements RequestService {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
 
-        request.setPurpose(updatedRequest.getPurpose());
-        request.setTitle(updatedRequest.getTitle());
-        request.setContent(updatedRequest.getContent());
-        request.setFileUrl(updatedRequest.getFileUrl());
-        request.setOrganization(updatedRequest.getOrganization());
+        // 부분 수정 바디로 나머지 필드가 null 로 지워지지 않도록 넘어온 값만 반영한다
+        if (updatedRequest.getPurpose() != null) request.setPurpose(updatedRequest.getPurpose());
+        if (updatedRequest.getTitle() != null) request.setTitle(updatedRequest.getTitle());
+        if (updatedRequest.getContent() != null) request.setContent(updatedRequest.getContent());
+        if (updatedRequest.getOrganization() != null) request.setOrganization(updatedRequest.getOrganization());
         return dataRequestRepository.save(request);
     }
 
@@ -142,7 +142,7 @@ public class RequestServiceImpl implements RequestService {
     public Question createQuestion(User author, QuestionRequestDto request) {
         Question question = new Question();
         question.setUser(author);
-        question.setContent(request.getContent());
+        question.setContent(requireContent(request.getContent()));
         question.setCreateDate(LocalDate.now());
         return questionRepository.save(question);
     }
@@ -153,8 +153,16 @@ public class RequestServiceImpl implements RequestService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
-        question.setContent(request.getContent());
+        question.setContent(requireContent(request.getContent()));
         return questionRepository.save(question);
+    }
+
+    /** 빈 본문이 그대로 저장되거나 기존 본문을 null 로 지우지 않도록 막는다(400). */
+    private String requireContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("내용을 입력해주세요.");
+        }
+        return content;
     }
 
     @Override
@@ -166,13 +174,17 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public Answer createAnswer(User author, AnswerRequestDto request) {
+        // 옛 바디 형태({"question":{"questionId":n}})로 오면 여기가 null 이다. findById(null) 은 500 이 되므로 400 으로 돌린다.
+        if (request.getQuestionId() == null) {
+            throw new IllegalArgumentException("questionId 가 필요합니다.");
+        }
         Question question = questionRepository.findById(request.getQuestionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
         Answer answer = new Answer();
         answer.setQuestion(question);
         answer.setUser(author);
-        answer.setContent(request.getContent());
+        answer.setContent(requireContent(request.getContent()));
         answer.setCreateDate(LocalDate.now());
         return answerRepository.save(answer);
     }
@@ -183,7 +195,7 @@ public class RequestServiceImpl implements RequestService {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
 
-        answer.setContent(request.getContent());
+        answer.setContent(requireContent(request.getContent()));
         return answerRepository.save(answer);
     }
 
