@@ -6,7 +6,7 @@ import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.ScrapResponseDto;
-import com.capstone.favicon.user.repository.DataRepository;
+import com.capstone.favicon.user.repository.ScrapRepository;
 import com.capstone.favicon.config.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 public class DataServiceImpl implements DataService {
 
-    private final DataRepository dataRepository;
+    private final ScrapRepository dataRepository;
     private final DatasetRepository datasetRepository;
 
     @Override

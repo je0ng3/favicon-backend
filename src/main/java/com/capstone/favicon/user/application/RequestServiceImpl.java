@@ -1,6 +1,6 @@
 package com.capstone.favicon.user.application;
 
-import com.capstone.favicon.config.S3Config;
+import com.capstone.favicon.infrastructure.s3.S3Storage;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
@@ -14,7 +14,6 @@ import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
 import com.capstone.favicon.user.application.service.RequestService;
 import com.capstone.favicon.config.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +26,21 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class RequestImpl implements RequestService {
+public class RequestServiceImpl implements RequestService {
     private final DataRequestRepository dataRequestRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
-    private final S3Config s3Config;
+    private final S3Storage s3Storage;
 
-    public RequestImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
+    public RequestServiceImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
                        AnswerRepository answerRepository, UserRepository userRepository,
-                       @Qualifier("s3Config") S3Config s3Config) {
+                       S3Storage s3Storage) {
         this.dataRequestRepository = dataRequestRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.userRepository = userRepository;
-        this.s3Config = s3Config;
+        this.s3Storage = s3Storage;
     }
 
     @Override
@@ -64,7 +63,7 @@ public class RequestImpl implements RequestService {
         dataRequest.setContent(dataRequestDto.getContent());
         dataRequest.setUploadDate(LocalDate.now());
         try {
-            String uploadedUrl = s3Config.uploadFile(dataRequestDto.getFile(), "pending");
+            String uploadedUrl = s3Storage.uploadFile(dataRequestDto.getFile(), "pending");
             dataRequest.setFileUrl(uploadedUrl);
         } catch (IOException e) {
             throw new RuntimeException("s3에 업로드 실패", e);
@@ -84,19 +83,19 @@ public class RequestImpl implements RequestService {
 
         String fileUrl = request.getFileUrl();
         if (fileUrl != null) {
-            String key = s3Config.extractKeyFromAnyUrl(fileUrl);
+            String key = s3Storage.extractKeyFromAnyUrl(fileUrl);
             System.out.println("추출된 키: " + key);
-            System.out.println("추출된 파일명: " + s3Config.extractFileNameFromKey(key));
+            System.out.println("추출된 파일명: " + s3Storage.extractFileNameFromKey(key));
 
             if (status == DataRequest.ReviewStatus.APPROVED) {
                 // 승인시 preprocessing 폴더로 이동(테스트 완료)
-                String newKey = "preprocessing/" + s3Config.extractFileNameFromKey(key);
-                s3Config.moveFile(key, newKey);
-                request.setFileUrl(s3Config.generateFileUrl(newKey));
+                String newKey = "preprocessing/" + s3Storage.extractFileNameFromKey(key);
+                s3Storage.moveFile(key, newKey);
+                request.setFileUrl(s3Storage.generateFileUrl(newKey));
 
             } else if (status == DataRequest.ReviewStatus.REJECTED) {
                 // 거절시 pending 폴더에 있는 파일 삭제(테스트 완료)
-                s3Config.deleteFileByKey(key);
+                s3Storage.deleteFileByKey(key);
                 request.setFileUrl(null);
             }
         }

@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-// 앱의 커스텀 @ComponentScan(S3Config 등 @Service 포함)을 타지 않도록, 테스트 전용 최소 JPA 설정으로 격리한다.
+// 앱의 커스텀 @ComponentScan(S3Storage 등 @Service 포함)을 타지 않도록, 테스트 전용 최소 JPA 설정으로 격리한다.
 @ContextConfiguration(classes = QueryAndSchemaVerificationTest.JpaTestConfig.class)
 @TestPropertySource(properties = {
         "ACTIVE=test",
