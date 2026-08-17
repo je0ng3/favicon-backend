@@ -8,7 +8,12 @@ import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
+import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.dto.AnswerRequestDto;
+import com.capstone.favicon.user.dto.DataRequestUpdateDto;
+import com.capstone.favicon.user.dto.QuestionRequestDto;
 import com.capstone.favicon.user.dto.RequestStatsDto;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.capstone.favicon.user.dto.AnswerResponseDto;
 import com.capstone.favicon.user.dto.DataRequestResponseDto;
 import com.capstone.favicon.user.dto.QuestionResponseDto;
@@ -76,7 +81,7 @@ public class RequestController {
 
     // 요청 게시글 수정
     @PutMapping("/{requestId}")
-    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequest updatedRequest) {
+    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequestUpdateDto updatedRequest) {
         DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
@@ -90,15 +95,16 @@ public class RequestController {
 
     // 질문 작성
     @PostMapping("/question")
-    public ResponseEntity<APIResponse<?>> createQuestion(@RequestBody Question question) {
-        Question newQuestion = requestService.createQuestion(question);
+    public ResponseEntity<APIResponse<?>> createQuestion(@RequestBody QuestionRequestDto request,
+                                                        @AuthenticationPrincipal User author) {
+        Question newQuestion = requestService.createQuestion(author, request);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 수정
     @PutMapping("/question/{questionId}")
-    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody Question updatedQuestion) {
-        Question newQuestion = requestService.updateQuestion(questionId, updatedQuestion);
+    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionRequestDto request) {
+        Question newQuestion = requestService.updateQuestion(questionId, request);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
@@ -111,15 +117,16 @@ public class RequestController {
 
     // 답변 작성
     @PostMapping("/answer")
-    public ResponseEntity<APIResponse<?>> createAnswer(@RequestBody Answer answer) {
-        Answer newAnswer = requestService.createAnswer(answer);
+    public ResponseEntity<APIResponse<?>> createAnswer(@RequestBody AnswerRequestDto request,
+                                                      @AuthenticationPrincipal User author) {
+        Answer newAnswer = requestService.createAnswer(author, request);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 수정
     @PutMapping("/answer/{answerId}")
-    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody Answer updatedAnswer) {
-        Answer newAnswer = requestService.updateAnswer(answerId, updatedAnswer);
+    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody AnswerRequestDto request) {
+        Answer newAnswer = requestService.updateAnswer(answerId, request);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 

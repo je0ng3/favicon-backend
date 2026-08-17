@@ -6,7 +6,10 @@ import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.dto.AnswerRequestDto;
 import com.capstone.favicon.user.dto.DataRequestDto;
+import com.capstone.favicon.user.dto.DataRequestUpdateDto;
+import com.capstone.favicon.user.dto.QuestionRequestDto;
 import com.capstone.favicon.user.dto.RequestStatsDto;
 import com.capstone.favicon.user.repository.UserRepository;
 import com.capstone.favicon.user.repository.DataRequestRepository;
@@ -116,7 +119,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest updateRequest(Long requestId, DataRequest updatedRequest) {
+    public DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
 
@@ -136,17 +139,21 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public Question createQuestion(Question question) {
+    public Question createQuestion(User author, QuestionRequestDto request) {
+        Question question = new Question();
+        question.setUser(author);
+        question.setContent(request.getContent());
+        question.setCreateDate(LocalDate.now());
         return questionRepository.save(question);
     }
 
     @Override
     @Transactional
-    public Question updateQuestion(Long questionId, Question updatedQuestion) {
+    public Question updateQuestion(Long questionId, QuestionRequestDto request) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
-        question.setContent(updatedQuestion.getContent());
+        question.setContent(request.getContent());
         return questionRepository.save(question);
     }
 
@@ -158,17 +165,25 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public Answer createAnswer(Answer answer) {
+    public Answer createAnswer(User author, AnswerRequestDto request) {
+        Question question = questionRepository.findById(request.getQuestionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+
+        Answer answer = new Answer();
+        answer.setQuestion(question);
+        answer.setUser(author);
+        answer.setContent(request.getContent());
+        answer.setCreateDate(LocalDate.now());
         return answerRepository.save(answer);
     }
 
     @Override
     @Transactional
-    public Answer updateAnswer(Long answerId, Answer updatedAnswer) {
+    public Answer updateAnswer(Long answerId, AnswerRequestDto request) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
 
-        answer.setContent(updatedAnswer.getContent());
+        answer.setContent(request.getContent());
         return answerRepository.save(answer);
     }
 
