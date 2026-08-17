@@ -28,3 +28,26 @@ jobs:
         run: |
           set -e
           ./gradlew clean build -Dspring.profiles.active=local
+
+      # 테스트가 실패해도 어디까지 덮였는지는 보이는 게 낫다
+      - name: Coverage summary
+        if: always()
+        run: |
+          csv=build/reports/jacoco/test/jacocoTestReport.csv
+          if [ ! -f "$csv" ]; then
+            echo "커버리지 리포트 없음: $csv" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          awk -F, 'NR>1 {bm+=$6; bc+=$7; lm+=$8; lc+=$9; mm+=$12; mc+=$13} END {
+            printf "| 지표 | 커버리지 |\n|---|---|\n"
+            if (lc+lm) printf "| Line | %.1f%% (%d/%d) |\n", 100*lc/(lc+lm), lc, lc+lm
+            if (bc+bm) printf "| Branch | %.1f%% (%d/%d) |\n", 100*bc/(bc+bm), bc, bc+bm
+            if (mc+mm) printf "| Method | %.1f%% (%d/%d) |\n", 100*mc/(mc+mm), mc, mc+mm
+          }' "$csv" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/test/html

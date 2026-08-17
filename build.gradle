@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
 }
@@ -59,4 +60,15 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy tasks.named('jacocoTestReport')
+}
+
+// dependsOn test 를 걸면 안 된다. finalizer 는 의존 태스크가 실패하면 건너뛰어져,
+// 정작 리포트가 필요한 '테스트 실패' 상황에서 리포트가 안 나온다.
+tasks.named('jacocoTestReport') {
+	reports {
+		xml.required = true
+		csv.required = true
+		html.required = true
+	}
 }
