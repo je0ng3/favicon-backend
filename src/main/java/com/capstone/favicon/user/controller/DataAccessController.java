@@ -5,6 +5,7 @@ import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.user.application.service.DataService;
 import com.capstone.favicon.user.domain.Scrap;
 import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.dto.ScrapResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,7 +35,8 @@ public class DataAccessController {
     @GetMapping("/scrap")
     public ResponseEntity<APIResponse<?>> getScraps(@AuthenticationPrincipal User user) {
         List<Scrap> scraps = dataService.getScrap(user);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", scraps));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                scraps.stream().map(ScrapResponseDto::from).toList()));
     }
 
 }

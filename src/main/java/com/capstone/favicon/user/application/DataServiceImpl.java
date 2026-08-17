@@ -32,8 +32,7 @@ public class DataServiceImpl implements DataService {
         scrap.setDatasetId(dataId);
         scrap.setTitle(dataset.getTitle());
         scrap.setTheme(dataset.getDatasetTheme().getTheme());
-        dataRepository.save(scrap);
-        return new ScrapResponseDto(dataId, dataset.getTitle(), dataset.getDatasetTheme().getTheme());
+        return ScrapResponseDto.from(dataRepository.save(scrap));
     }
 
     @Override

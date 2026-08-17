@@ -3,6 +3,7 @@ package com.capstone.favicon.dataset.controller;
 import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.application.service.DatasetThemeService;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.dto.DatasetThemeDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,8 @@ public class DatasetThemeController {
             @RequestParam(name = "fileType", required = false) String fileType) {
 
         List<DatasetTheme> datasets = datasetThemeService.getDatasets(region, dataYear, fileType);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success",
+                datasets.stream().map(DatasetThemeDto::from).toList()));
     }
 
 }

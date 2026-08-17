@@ -1,5 +1,6 @@
 package com.capstone.favicon.admin.dto;
 
+import com.capstone.favicon.admin.domain.Notice;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,4 +13,15 @@ public class NoticeResponseDto {
     private String createDate;
     private int view;
     private String label;
+
+    public static NoticeResponseDto from(Notice notice) {
+        return new NoticeResponseDto(
+                notice.getNoticeId(),
+                notice.getTitle(),
+                notice.getContent(),
+                notice.getCreateDate().toString(),
+                notice.getView(),
+                notice.getLabel().name()
+        );
+    }
 }

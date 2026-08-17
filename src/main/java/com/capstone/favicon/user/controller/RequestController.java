@@ -9,6 +9,9 @@ import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
 import com.capstone.favicon.user.dto.RequestStatsDto;
+import com.capstone.favicon.user.dto.AnswerResponseDto;
+import com.capstone.favicon.user.dto.DataRequestResponseDto;
+import com.capstone.favicon.user.dto.QuestionResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +35,8 @@ public class RequestController {
     @GetMapping("/list")
     public ResponseEntity<APIResponse<?>> getAllRequests() {
         List<DataRequest> requests = requestService.getAllRequests();
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", requests));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                requests.stream().map(DataRequestResponseDto::from).toList()));
     }
 
     @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -41,13 +45,13 @@ public class RequestController {
             @RequestPart("file") MultipartFile file) {
         dataRequestDto.setFile(file);
         DataRequest created = requestService.createRequest(dataRequestDto);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", created));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", DataRequestResponseDto.from(created)));
     }
 
     @PutMapping("/list/{requestId}/review")
     public ResponseEntity<APIResponse<?>> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status) {
         DataRequest dataRequest = requestService.updateReviewStatus(requestId, status);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
     @GetMapping("/stats")
@@ -59,20 +63,22 @@ public class RequestController {
     @GetMapping("/question")
     public ResponseEntity<APIResponse<?>> getQuestions(@RequestParam Long userId) {
         List<Question> questions = requestService.getQuestionsByUser(userId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", questions));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                questions.stream().map(QuestionResponseDto::from).toList()));
     }
 
     @GetMapping("/answer")
     public ResponseEntity<APIResponse<?>> getAnswers(@RequestParam Long questionId) {
         List<Answer> answers = requestService.getAnswersByQuestion(questionId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", answers));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                answers.stream().map(AnswerResponseDto::from).toList()));
     }
 
     // 요청 게시글 수정
     @PutMapping("/{requestId}")
     public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequest updatedRequest) {
         DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
     // 요청 게시글 삭제
@@ -86,14 +92,14 @@ public class RequestController {
     @PostMapping("/question")
     public ResponseEntity<APIResponse<?>> createQuestion(@RequestBody Question question) {
         Question newQuestion = requestService.createQuestion(question);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newQuestion));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 수정
     @PutMapping("/question/{questionId}")
     public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody Question updatedQuestion) {
         Question newQuestion = requestService.updateQuestion(questionId, updatedQuestion);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newQuestion));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 삭제
@@ -107,14 +113,14 @@ public class RequestController {
     @PostMapping("/answer")
     public ResponseEntity<APIResponse<?>> createAnswer(@RequestBody Answer answer) {
         Answer newAnswer = requestService.createAnswer(answer);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newAnswer));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 수정
     @PutMapping("/answer/{answerId}")
     public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody Answer updatedAnswer) {
         Answer newAnswer = requestService.updateAnswer(answerId, updatedAnswer);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newAnswer));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 삭제

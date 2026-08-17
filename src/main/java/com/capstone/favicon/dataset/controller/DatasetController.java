@@ -4,6 +4,8 @@ import com.capstone.favicon.config.APIResponse;
 import com.capstone.favicon.dataset.application.service.DatasetService;
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
+import com.capstone.favicon.dataset.dto.DatasetResponseDto;
+import com.capstone.favicon.dataset.dto.DatasetThemeDto;
 import org.springframework.http.ResponseEntity;
 import com.capstone.favicon.dataset.dto.SearchDto;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +27,13 @@ public class DatasetController {
     @GetMapping
     public ResponseEntity<APIResponse<?>> getDatasets() {
         List<Dataset> datasets = datasetService.findAllDatasets();
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", toDto(datasets)));
     }
 
     @GetMapping("/top9")
     public ResponseEntity<APIResponse<?>> getTop9Datasets() {
         List<Dataset> datasets = datasetService.getTop9ByDownload();
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", toDto(datasets)));
     }
 
     @PostMapping("/incrementDownload/{datasetId}")
@@ -43,7 +45,8 @@ public class DatasetController {
     @GetMapping("/theme")
     public ResponseEntity<APIResponse<?>> filterByCategory(@RequestParam String theme) {
         List<DatasetTheme> datasetThemes = datasetService.filterByCategory(theme);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasetThemes));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success",
+                datasetThemes.stream().map(DatasetThemeDto::from).toList()));
     }
 
     @GetMapping("/count")
@@ -55,7 +58,7 @@ public class DatasetController {
     @GetMapping("/{datasetId:\\d+}")
     public ResponseEntity<APIResponse<?>> getDatasetDetails(@PathVariable Long datasetId) {
         Optional<Dataset> dataset = datasetService.getDatasetDetails(datasetId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", dataset));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", dataset.map(DatasetResponseDto::from)));
     }
 
     @GetMapping("/ratio")
@@ -67,13 +70,13 @@ public class DatasetController {
     @GetMapping("/category/{themeId}")
     public ResponseEntity<APIResponse<?>> getDatasetsByCategory(@PathVariable Long themeId) {
         List<Dataset> datasets = datasetService.getDatasetsByCategory(themeId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", datasets));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", toDto(datasets)));
     }
 
     @GetMapping("/search-sorted")
     public ResponseEntity<APIResponse<?>> search(@RequestBody SearchDto searchDto) {
         List<Dataset> dataList = datasetService.search(searchDto.getText());
-        return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", dataList));
+        return ResponseEntity.ok().body(APIResponse.successAPI("검색결과", toDto(dataList)));
     }
 
     @GetMapping("/group-by-theme")
@@ -88,4 +91,7 @@ public class DatasetController {
         return ResponseEntity.ok().body(APIResponse.successAPI("success", stats));
     }
 
+    private List<DatasetResponseDto> toDto(List<Dataset> datasets) {
+        return datasets.stream().map(DatasetResponseDto::from).toList();
+    }
 }
