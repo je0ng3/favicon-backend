@@ -6,12 +6,12 @@ import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.domain.User;
+import org.springframework.security.access.AccessDeniedException;
 import com.capstone.favicon.user.dto.AnswerRequestDto;
 import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.dto.DataRequestUpdateDto;
 import com.capstone.favicon.user.dto.QuestionRequestDto;
 import com.capstone.favicon.user.dto.RequestStatsDto;
-import com.capstone.favicon.user.repository.UserRepository;
 import com.capstone.favicon.user.repository.DataRequestRepository;
 import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
@@ -33,16 +33,14 @@ public class RequestServiceImpl implements RequestService {
     private final DataRequestRepository dataRequestRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
-    private final UserRepository userRepository;
     private final S3Storage s3Storage;
 
     public RequestServiceImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
-                       AnswerRepository answerRepository, UserRepository userRepository,
+                       AnswerRepository answerRepository,
                        S3Storage s3Storage) {
         this.dataRequestRepository = dataRequestRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
-        this.userRepository = userRepository;
         this.s3Storage = s3Storage;
     }
 
@@ -53,14 +51,9 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest createRequest(DataRequestDto dataRequestDto) {
-        User user = userRepository.findByUserId(dataRequestDto.getUserId());
-        if (user == null) {
-            throw new ResourceNotFoundException("유저 아이디를 찾을 수 없음: " + dataRequestDto.getUserId());
-        }
-
+    public DataRequest createRequest(User author, DataRequestDto dataRequestDto) {
         DataRequest dataRequest = new DataRequest();
-        dataRequest.setUser(user);
+        dataRequest.setUser(author);
         dataRequest.setPurpose(dataRequestDto.getPurpose());
         dataRequest.setTitle(dataRequestDto.getTitle());
         dataRequest.setContent(dataRequestDto.getContent());
@@ -71,7 +64,6 @@ public class RequestServiceImpl implements RequestService {
         } catch (IOException e) {
             throw new RuntimeException("s3에 업로드 실패", e);
         }
-        //dataRequest.setFileUrl(dataRequestDto.getFileUrl());
         dataRequest.setOrganization(dataRequestDto.getOrganization());
         dataRequest.setReviewStatus(DataRequest.ReviewStatus.PENDING);
 
@@ -119,9 +111,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest) {
+    public DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest, User actor) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
 
         // 부분 수정 바디로 나머지 필드가 null 로 지워지지 않도록 넘어온 값만 반영한다
         if (updatedRequest.getPurpose() != null) request.setPurpose(updatedRequest.getPurpose());
@@ -133,8 +126,11 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public void deleteRequest(Long requestId) {
-        dataRequestRepository.deleteById(requestId);
+    public void deleteRequest(Long requestId, User actor) {
+        DataRequest request = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
+        dataRequestRepository.delete(request);
     }
 
     @Override
@@ -149,9 +145,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public Question updateQuestion(Long questionId, QuestionRequestDto request) {
+    public Question updateQuestion(Long questionId, QuestionRequestDto request, User actor) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        assertCanModify(actor, question.getUser());
 
         question.setContent(requireContent(request.getContent()));
         return questionRepository.save(question);
@@ -167,8 +164,11 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public void deleteQuestion(Long questionId) {
-        questionRepository.deleteById(questionId);
+    public void deleteQuestion(Long questionId, User actor) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        assertCanModify(actor, question.getUser());
+        questionRepository.delete(question);
     }
 
     @Override
@@ -191,9 +191,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public Answer updateAnswer(Long answerId, AnswerRequestDto request) {
+    public Answer updateAnswer(Long answerId, AnswerRequestDto request, User actor) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
+        assertCanModify(actor, answer.getUser());
 
         answer.setContent(requireContent(request.getContent()));
         return answerRepository.save(answer);
@@ -201,8 +202,18 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public void deleteAnswer(Long answerId) {
-        answerRepository.deleteById(answerId);
+    public void deleteAnswer(Long answerId, User actor) {
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
+        assertCanModify(actor, answer.getUser());
+        answerRepository.delete(answer);
+    }
+
+    /** 작성자 본인 또는 관리자만 수정·삭제할 수 있다. */
+    private void assertCanModify(User actor, User owner) {
+        if (actor == null || owner == null || !(actor.isAdmin() || owner.getUserId().equals(actor.getUserId()))) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
     }
 
     @Override

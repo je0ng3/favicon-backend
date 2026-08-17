@@ -7,11 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class DataRequestDto {
-    private Long userId;
     private String purpose;
     private String title;
     private String content;
     private MultipartFile file;
-    private String fileUrl;
     private String organization;
 }

@@ -16,21 +16,22 @@ import java.util.List;
 public interface RequestService {
     RequestStatsDto getRequestStats();
     List<DataRequest> getAllRequests();
-    DataRequest createRequest(DataRequestDto dataRequestDto);
+    DataRequest createRequest(User author, DataRequestDto dataRequestDto);
     DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status);
     List<Question> getQuestionsByUser(Long userId);
     List<Answer> getAnswersByQuestion(Long questionId);
 
-    DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest);
-    void deleteRequest(Long requestId);
+    // 수정·삭제는 작성자 본인 또는 관리자만 가능하므로 호출자(actor)를 함께 받는다
+    DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest, User actor);
+    void deleteRequest(Long requestId, User actor);
 
     Question createQuestion(User author, QuestionRequestDto request);
-    Question updateQuestion(Long questionId, QuestionRequestDto request);
-    void deleteQuestion(Long questionId);
+    Question updateQuestion(Long questionId, QuestionRequestDto request, User actor);
+    void deleteQuestion(Long questionId, User actor);
 
     Answer createAnswer(User author, AnswerRequestDto request);
-    Answer updateAnswer(Long answerId, AnswerRequestDto request);
-    void deleteAnswer(Long answerId);
+    Answer updateAnswer(Long answerId, AnswerRequestDto request, User actor);
+    void deleteAnswer(Long answerId, User actor);
 
 
     String getFileUrlByRequestId(Long requestId);

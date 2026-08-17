@@ -41,6 +41,10 @@ public class User implements UserDetails {
         createdAt = LocalDateTime.now();
     }
 
+    public boolean isAdmin() {
+        return role != null && role == 1;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String roleName = switch (role) {

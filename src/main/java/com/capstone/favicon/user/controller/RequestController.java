@@ -47,9 +47,10 @@ public class RequestController {
     @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<?>> createRequest(
             @RequestPart("dataRequestDto") DataRequestDto dataRequestDto,
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file,
+            @AuthenticationPrincipal User author) {
         dataRequestDto.setFile(file);
-        DataRequest created = requestService.createRequest(dataRequestDto);
+        DataRequest created = requestService.createRequest(author, dataRequestDto);
         return ResponseEntity.ok().body(APIResponse.successAPI("success", DataRequestResponseDto.from(created)));
     }
 
@@ -81,15 +82,16 @@ public class RequestController {
 
     // 요청 게시글 수정
     @PutMapping("/{requestId}")
-    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequestUpdateDto updatedRequest) {
-        DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest);
+    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequestUpdateDto updatedRequest,
+                                                       @AuthenticationPrincipal User actor) {
+        DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
     // 요청 게시글 삭제
     @DeleteMapping("/{requestId}")
-    public ResponseEntity<APIResponse<?>> deleteRequest(@PathVariable Long requestId) {
-        requestService.deleteRequest(requestId);
+    public ResponseEntity<APIResponse<?>> deleteRequest(@PathVariable Long requestId, @AuthenticationPrincipal User actor) {
+        requestService.deleteRequest(requestId, actor);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,15 +105,16 @@ public class RequestController {
 
     // 질문 수정
     @PutMapping("/question/{questionId}")
-    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionRequestDto request) {
-        Question newQuestion = requestService.updateQuestion(questionId, request);
+    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionRequestDto request,
+                                                        @AuthenticationPrincipal User actor) {
+        Question newQuestion = requestService.updateQuestion(questionId, request, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 삭제
     @DeleteMapping("/question/{questionId}")
-    public ResponseEntity<APIResponse<?>> deleteQuestion(@PathVariable Long questionId) {
-        requestService.deleteQuestion(questionId);
+    public ResponseEntity<APIResponse<?>> deleteQuestion(@PathVariable Long questionId, @AuthenticationPrincipal User actor) {
+        requestService.deleteQuestion(questionId, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
     }
 
@@ -125,15 +128,16 @@ public class RequestController {
 
     // 답변 수정
     @PutMapping("/answer/{answerId}")
-    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody AnswerRequestDto request) {
-        Answer newAnswer = requestService.updateAnswer(answerId, request);
+    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody AnswerRequestDto request,
+                                                      @AuthenticationPrincipal User actor) {
+        Answer newAnswer = requestService.updateAnswer(answerId, request, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 삭제
     @DeleteMapping("/answer/{answerId}")
-    public ResponseEntity<APIResponse<?>> deleteAnswer(@PathVariable Long answerId) {
-        requestService.deleteAnswer(answerId);
+    public ResponseEntity<APIResponse<?>> deleteAnswer(@PathVariable Long answerId, @AuthenticationPrincipal User actor) {
+        requestService.deleteAnswer(answerId, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
     }
 
