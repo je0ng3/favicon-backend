@@ -12,7 +12,8 @@ public class Utf8Filter implements Filter{
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse res = (HttpServletResponse) response;
         res.setCharacterEncoding("UTF-8");
-        res.setContentType("text/html; charset=UTF-8");
+        // Content-Type 을 여기서 정하면 안 된다. 응답 타입이 미리 고정되어 JSON 컨버터를 찾지 못하고
+        // 모든 REST 응답이 500(HttpMessageNotWritableException)이 된다.
         chain.doFilter(request, response);
     }
 
