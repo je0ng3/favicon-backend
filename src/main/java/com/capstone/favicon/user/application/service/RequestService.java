@@ -17,7 +17,9 @@ public interface RequestService {
     RequestStatsDto getRequestStats();
     List<DataRequest> getAllRequests();
     DataRequest createRequest(User author, DataRequestDto dataRequestDto);
-    DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status);
+    DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status, User reviewer);
+    /** 다운로드는 작성자 본인 또는 관리자만 가능하다. */
+    void verifyRequestAccess(Long requestId, User actor);
     List<Question> getQuestionsByUser(Long userId);
     List<Answer> getAnswersByQuestion(Long questionId);
 

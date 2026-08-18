@@ -28,7 +28,8 @@ public class DataRequestResponseDto {
         return new DataRequestResponseDto(
                 request.getDataRequestId(),
                 request.getUser() == null ? null : request.getUser().getUserId(),
-                request.getUser() == null ? null : request.getUser().getUsername(),
+                // getUsername() 은 email 을 돌려준다. 그대로 쓰면 응답에 이메일이 실린다
+                request.getUser() == null ? null : request.getUser().getDisplayName(),
                 request.getPurpose(),
                 request.getTitle(),
                 request.getContent(),

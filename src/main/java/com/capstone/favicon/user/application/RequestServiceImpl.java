@@ -72,7 +72,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status) {
+    public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status, User reviewer) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾지 못했습니다"));
 
@@ -95,6 +95,8 @@ public class RequestServiceImpl implements RequestService {
             }
         }
         request.setReviewStatus(status);
+        request.setReviewedBy(reviewer);
+        request.setReviewDate(LocalDate.now());
         return dataRequestRepository.save(request);
     }
 
@@ -130,6 +132,10 @@ public class RequestServiceImpl implements RequestService {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
         assertCanModify(actor, request.getUser());
+        // DB 행만 지우면 pending/ 에 올라간 파일이 참조 없이 남는다
+        if (request.getFileUrl() != null) {
+            s3Storage.deleteFileByKey(s3Storage.extractKeyFromAnyUrl(request.getFileUrl()));
+        }
         dataRequestRepository.delete(request);
     }
 
@@ -207,6 +213,14 @@ public class RequestServiceImpl implements RequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
         assertCanModify(actor, answer.getUser());
         answerRepository.delete(answer);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void verifyRequestAccess(Long requestId, User actor) {
+        DataRequest request = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
     }
 
     /** 작성자 본인 또는 관리자만 수정·삭제할 수 있다. */

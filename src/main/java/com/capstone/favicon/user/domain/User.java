@@ -45,6 +45,11 @@ public class User implements UserDetails {
         return role != null && role == 1;
     }
 
+    /** getUsername() 은 UserDetails 규약상 email 을 돌려주므로, 실제 표시 이름은 이쪽으로 읽는다. */
+    public String getDisplayName() {
+        return username;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String roleName = switch (role) {

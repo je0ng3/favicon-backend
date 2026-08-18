@@ -6,8 +6,11 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 
-/** 엔티티를 그대로 내보내면 downloadSet 이 직렬화 중에 지연 로딩되어 N+1 이 난다.
- *  resource 는 mappedBy @OneToOne 이라 어차피 조회 시점에 함께 로딩되므로 평탄화해서 유지한다. */
+/**
+ * 엔티티를 그대로 내보내면 downloadSet 이 직렬화 중에 지연 로딩되어 N+1 이 난다. 그건 이 DTO 로 사라진다.
+ * resource 는 mappedBy @OneToOne 이라 LAZY 를 붙여도 행마다 별도 SELECT 가 나가므로, DTO 에서 빼도
+ * 쿼리는 그대로다. 그래서 평탄화해서 유지한다(이쪽 N+1 은 join fetch 로 따로 잡아야 한다).
+ */
 @Getter
 @AllArgsConstructor
 public class DatasetResponseDto {

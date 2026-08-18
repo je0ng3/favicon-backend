@@ -55,8 +55,9 @@ public class RequestController {
     }
 
     @PutMapping("/list/{requestId}/review")
-    public ResponseEntity<APIResponse<?>> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status) {
-        DataRequest dataRequest = requestService.updateReviewStatus(requestId, status);
+    public ResponseEntity<APIResponse<?>> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status,
+                                                            @AuthenticationPrincipal User reviewer) {
+        DataRequest dataRequest = requestService.updateReviewStatus(requestId, status, reviewer);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
@@ -142,7 +143,9 @@ public class RequestController {
     }
 
     @GetMapping("/download/{requestId}")
-    public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId) throws IOException {
+    public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId,
+                                                                  @AuthenticationPrincipal User actor) throws IOException {
+        requestService.verifyRequestAccess(requestId, actor);
         File downloadedFile = s3FileDownloadService.downloadFileFromDataRequest(requestId);
         Resource fileResource = new FileSystemResource(downloadedFile);
         String fileName = downloadedFile.getName();
