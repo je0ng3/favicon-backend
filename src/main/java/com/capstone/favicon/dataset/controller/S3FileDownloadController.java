@@ -17,7 +17,7 @@ import java.net.URLEncoder;
 
 @RestController
 @RequestMapping("/data-set")
-public class s3FileDownloadController {
+public class S3FileDownloadController {
 
     @Autowired
     private S3FileDownloadService s3FileDownloadService;

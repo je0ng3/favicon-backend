@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface DataRepository extends JpaRepository<Scrap, Long> {
+public interface ScrapRepository extends JpaRepository<Scrap, Long> {
     List<Scrap> findAllByUserId(Long userId);
     Scrap findByScrapIdAndUserId(Long scrapId, Long userId);
 }

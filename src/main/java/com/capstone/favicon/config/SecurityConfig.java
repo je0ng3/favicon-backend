@@ -49,6 +49,8 @@ public class SecurityConfig {
             "/faq/*",
             "/notice/create",
             "/notice/*",
+            // 심사는 S3 파일 이동·삭제를 일으키므로 관리자만 호출할 수 있어야 한다
+            "/request/list/*/review",
     };
 
 

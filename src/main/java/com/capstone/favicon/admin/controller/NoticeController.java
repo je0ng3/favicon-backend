@@ -52,6 +52,6 @@ public class NoticeController {
     @GetMapping("/view/{noticeId}")
     public ResponseEntity<APIResponse<?>> getNotice(@PathVariable Long noticeId) {
         Notice notice = noticeService.getNotice(noticeId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", notice));
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", NoticeResponseDto.from(notice)));
     }
 }

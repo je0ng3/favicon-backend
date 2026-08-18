@@ -50,14 +50,7 @@ public class NoticeServiceImpl implements NoticeService {
     public List<NoticeResponseDto> getAllNotices() {
         List<Notice> notices = noticeRepository.findAll();
         return notices.stream()
-                .map(notice -> new NoticeResponseDto(
-                        notice.getNoticeId(),
-                        notice.getTitle(),
-                        notice.getContent(),
-                        notice.getCreateDate().toString(),
-                        notice.getView(),
-                        notice.getLabel().name()
-                ))
+                .map(NoticeResponseDto::from)
                 .collect(Collectors.toList());
     }
 
@@ -66,14 +59,7 @@ public class NoticeServiceImpl implements NoticeService {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
-        return new NoticeResponseDto(
-                notice.getNoticeId(),
-                notice.getTitle(),
-                notice.getContent(),
-                notice.getCreateDate().toString(),
-                notice.getView(),
-                notice.getLabel().name()
-        );
+        return NoticeResponseDto.from(notice);
     }
 
     @Override

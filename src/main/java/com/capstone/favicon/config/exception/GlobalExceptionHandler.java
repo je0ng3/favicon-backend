@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<APIResponse<?>> handleBadCredentials(BadCredentialsException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(APIResponse.errorAPI(e.getMessage()));
+    }
+
+    /** 권한 없음 → 403. 이 핸들러가 없으면 아래 Exception 핸들러가 먼저 잡아 500 이 된다. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<APIResponse<?>> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(APIResponse.errorAPI(e.getMessage()));
     }
 
     /** @Valid 바디 검증 실패 → 400 (첫 번째 필드 오류 메시지 반환) */

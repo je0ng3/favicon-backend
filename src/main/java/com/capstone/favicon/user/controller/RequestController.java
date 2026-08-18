@@ -8,7 +8,15 @@ import com.capstone.favicon.user.dto.DataRequestDto;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.application.service.RequestService;
+import com.capstone.favicon.user.domain.User;
+import com.capstone.favicon.user.dto.AnswerRequestDto;
+import com.capstone.favicon.user.dto.DataRequestUpdateDto;
+import com.capstone.favicon.user.dto.QuestionRequestDto;
 import com.capstone.favicon.user.dto.RequestStatsDto;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.capstone.favicon.user.dto.AnswerResponseDto;
+import com.capstone.favicon.user.dto.DataRequestResponseDto;
+import com.capstone.favicon.user.dto.QuestionResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -32,22 +40,25 @@ public class RequestController {
     @GetMapping("/list")
     public ResponseEntity<APIResponse<?>> getAllRequests() {
         List<DataRequest> requests = requestService.getAllRequests();
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", requests));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                requests.stream().map(DataRequestResponseDto::from).toList()));
     }
 
     @PostMapping(value = "/list", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<?>> createRequest(
             @RequestPart("dataRequestDto") DataRequestDto dataRequestDto,
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file,
+            @AuthenticationPrincipal User author) {
         dataRequestDto.setFile(file);
-        DataRequest created = requestService.createRequest(dataRequestDto);
-        return ResponseEntity.ok().body(APIResponse.successAPI("success", created));
+        DataRequest created = requestService.createRequest(author, dataRequestDto);
+        return ResponseEntity.ok().body(APIResponse.successAPI("success", DataRequestResponseDto.from(created)));
     }
 
     @PutMapping("/list/{requestId}/review")
-    public ResponseEntity<APIResponse<?>> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status) {
-        DataRequest dataRequest = requestService.updateReviewStatus(requestId, status);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+    public ResponseEntity<APIResponse<?>> updateReviewStatus(@PathVariable Long requestId, @RequestParam DataRequest.ReviewStatus status,
+                                                            @AuthenticationPrincipal User reviewer) {
+        DataRequest dataRequest = requestService.updateReviewStatus(requestId, status, reviewer);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
     @GetMapping("/stats")
@@ -59,73 +70,82 @@ public class RequestController {
     @GetMapping("/question")
     public ResponseEntity<APIResponse<?>> getQuestions(@RequestParam Long userId) {
         List<Question> questions = requestService.getQuestionsByUser(userId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", questions));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                questions.stream().map(QuestionResponseDto::from).toList()));
     }
 
     @GetMapping("/answer")
     public ResponseEntity<APIResponse<?>> getAnswers(@RequestParam Long questionId) {
         List<Answer> answers = requestService.getAnswersByQuestion(questionId);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", answers));
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success",
+                answers.stream().map(AnswerResponseDto::from).toList()));
     }
 
     // 요청 게시글 수정
     @PutMapping("/{requestId}")
-    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequest updatedRequest) {
-        DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", dataRequest));
+    public ResponseEntity<APIResponse<?>> updateRequest(@PathVariable Long requestId, @RequestBody DataRequestUpdateDto updatedRequest,
+                                                       @AuthenticationPrincipal User actor) {
+        DataRequest dataRequest = requestService.updateRequest(requestId, updatedRequest, actor);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", DataRequestResponseDto.from(dataRequest)));
     }
 
     // 요청 게시글 삭제
     @DeleteMapping("/{requestId}")
-    public ResponseEntity<APIResponse<?>> deleteRequest(@PathVariable Long requestId) {
-        requestService.deleteRequest(requestId);
+    public ResponseEntity<APIResponse<?>> deleteRequest(@PathVariable Long requestId, @AuthenticationPrincipal User actor) {
+        requestService.deleteRequest(requestId, actor);
         return ResponseEntity.noContent().build();
     }
 
     // 질문 작성
     @PostMapping("/question")
-    public ResponseEntity<APIResponse<?>> createQuestion(@RequestBody Question question) {
-        Question newQuestion = requestService.createQuestion(question);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newQuestion));
+    public ResponseEntity<APIResponse<?>> createQuestion(@RequestBody QuestionRequestDto request,
+                                                        @AuthenticationPrincipal User author) {
+        Question newQuestion = requestService.createQuestion(author, request);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 수정
     @PutMapping("/question/{questionId}")
-    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody Question updatedQuestion) {
-        Question newQuestion = requestService.updateQuestion(questionId, updatedQuestion);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newQuestion));
+    public ResponseEntity<APIResponse<?>> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionRequestDto request,
+                                                        @AuthenticationPrincipal User actor) {
+        Question newQuestion = requestService.updateQuestion(questionId, request, actor);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", QuestionResponseDto.from(newQuestion)));
     }
 
     // 질문 삭제
     @DeleteMapping("/question/{questionId}")
-    public ResponseEntity<APIResponse<?>> deleteQuestion(@PathVariable Long questionId) {
-        requestService.deleteQuestion(questionId);
+    public ResponseEntity<APIResponse<?>> deleteQuestion(@PathVariable Long questionId, @AuthenticationPrincipal User actor) {
+        requestService.deleteQuestion(questionId, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
     }
 
     // 답변 작성
     @PostMapping("/answer")
-    public ResponseEntity<APIResponse<?>> createAnswer(@RequestBody Answer answer) {
-        Answer newAnswer = requestService.createAnswer(answer);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newAnswer));
+    public ResponseEntity<APIResponse<?>> createAnswer(@RequestBody AnswerRequestDto request,
+                                                      @AuthenticationPrincipal User author) {
+        Answer newAnswer = requestService.createAnswer(author, request);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 수정
     @PutMapping("/answer/{answerId}")
-    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody Answer updatedAnswer) {
-        Answer newAnswer = requestService.updateAnswer(answerId, updatedAnswer);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Success", newAnswer));
+    public ResponseEntity<APIResponse<?>> updateAnswer(@PathVariable Long answerId, @RequestBody AnswerRequestDto request,
+                                                      @AuthenticationPrincipal User actor) {
+        Answer newAnswer = requestService.updateAnswer(answerId, request, actor);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Success", AnswerResponseDto.from(newAnswer)));
     }
 
     // 답변 삭제
     @DeleteMapping("/answer/{answerId}")
-    public ResponseEntity<APIResponse<?>> deleteAnswer(@PathVariable Long answerId) {
-        requestService.deleteAnswer(answerId);
+    public ResponseEntity<APIResponse<?>> deleteAnswer(@PathVariable Long answerId, @AuthenticationPrincipal User actor) {
+        requestService.deleteAnswer(answerId, actor);
         return ResponseEntity.ok().body(APIResponse.successAPI("Success", null));
     }
 
     @GetMapping("/download/{requestId}")
-    public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId) throws IOException {
+    public ResponseEntity<Resource> downloadDataRequestFile(@PathVariable Long requestId,
+                                                                  @AuthenticationPrincipal User actor) throws IOException {
+        requestService.verifyRequestAccess(requestId, actor);
         File downloadedFile = s3FileDownloadService.downloadFileFromDataRequest(requestId);
         Resource fileResource = new FileSystemResource(downloadedFile);
         String fileName = downloadedFile.getName();

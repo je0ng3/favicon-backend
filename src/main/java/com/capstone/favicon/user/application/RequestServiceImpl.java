@@ -1,20 +1,22 @@
 package com.capstone.favicon.user.application;
 
-import com.capstone.favicon.config.S3Config;
+import com.capstone.favicon.infrastructure.s3.S3Storage;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.domain.User;
+import org.springframework.security.access.AccessDeniedException;
+import com.capstone.favicon.user.dto.AnswerRequestDto;
 import com.capstone.favicon.user.dto.DataRequestDto;
+import com.capstone.favicon.user.dto.DataRequestUpdateDto;
+import com.capstone.favicon.user.dto.QuestionRequestDto;
 import com.capstone.favicon.user.dto.RequestStatsDto;
-import com.capstone.favicon.user.repository.UserRepository;
 import com.capstone.favicon.user.repository.DataRequestRepository;
 import com.capstone.favicon.user.repository.QuestionRepository;
 import com.capstone.favicon.user.repository.AnswerRepository;
 import com.capstone.favicon.user.application.service.RequestService;
 import com.capstone.favicon.config.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +29,19 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class RequestImpl implements RequestService {
+public class RequestServiceImpl implements RequestService {
     private final DataRequestRepository dataRequestRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
-    private final UserRepository userRepository;
-    private final S3Config s3Config;
+    private final S3Storage s3Storage;
 
-    public RequestImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
-                       AnswerRepository answerRepository, UserRepository userRepository,
-                       @Qualifier("s3Config") S3Config s3Config) {
+    public RequestServiceImpl(DataRequestRepository dataRequestRepository,QuestionRepository questionRepository,
+                       AnswerRepository answerRepository,
+                       S3Storage s3Storage) {
         this.dataRequestRepository = dataRequestRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
-        this.userRepository = userRepository;
-        this.s3Config = s3Config;
+        this.s3Storage = s3Storage;
     }
 
     @Override
@@ -51,25 +51,19 @@ public class RequestImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest createRequest(DataRequestDto dataRequestDto) {
-        User user = userRepository.findByUserId(dataRequestDto.getUserId());
-        if (user == null) {
-            throw new ResourceNotFoundException("유저 아이디를 찾을 수 없음: " + dataRequestDto.getUserId());
-        }
-
+    public DataRequest createRequest(User author, DataRequestDto dataRequestDto) {
         DataRequest dataRequest = new DataRequest();
-        dataRequest.setUser(user);
+        dataRequest.setUser(author);
         dataRequest.setPurpose(dataRequestDto.getPurpose());
         dataRequest.setTitle(dataRequestDto.getTitle());
         dataRequest.setContent(dataRequestDto.getContent());
         dataRequest.setUploadDate(LocalDate.now());
         try {
-            String uploadedUrl = s3Config.uploadFile(dataRequestDto.getFile(), "pending");
+            String uploadedUrl = s3Storage.uploadFile(dataRequestDto.getFile(), "pending");
             dataRequest.setFileUrl(uploadedUrl);
         } catch (IOException e) {
             throw new RuntimeException("s3에 업로드 실패", e);
         }
-        //dataRequest.setFileUrl(dataRequestDto.getFileUrl());
         dataRequest.setOrganization(dataRequestDto.getOrganization());
         dataRequest.setReviewStatus(DataRequest.ReviewStatus.PENDING);
 
@@ -78,29 +72,31 @@ public class RequestImpl implements RequestService {
 
     @Override
     @Transactional
-    public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status) {
+    public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status, User reviewer) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾지 못했습니다"));
 
         String fileUrl = request.getFileUrl();
         if (fileUrl != null) {
-            String key = s3Config.extractKeyFromAnyUrl(fileUrl);
+            String key = s3Storage.extractKeyFromAnyUrl(fileUrl);
             System.out.println("추출된 키: " + key);
-            System.out.println("추출된 파일명: " + s3Config.extractFileNameFromKey(key));
+            System.out.println("추출된 파일명: " + s3Storage.extractFileNameFromKey(key));
 
             if (status == DataRequest.ReviewStatus.APPROVED) {
                 // 승인시 preprocessing 폴더로 이동(테스트 완료)
-                String newKey = "preprocessing/" + s3Config.extractFileNameFromKey(key);
-                s3Config.moveFile(key, newKey);
-                request.setFileUrl(s3Config.generateFileUrl(newKey));
+                String newKey = "preprocessing/" + s3Storage.extractFileNameFromKey(key);
+                s3Storage.moveFile(key, newKey);
+                request.setFileUrl(s3Storage.generateFileUrl(newKey));
 
             } else if (status == DataRequest.ReviewStatus.REJECTED) {
                 // 거절시 pending 폴더에 있는 파일 삭제(테스트 완료)
-                s3Config.deleteFileByKey(key);
+                s3Storage.deleteFileByKey(key);
                 request.setFileUrl(null);
             }
         }
         request.setReviewStatus(status);
+        request.setReviewedBy(reviewer);
+        request.setReviewDate(LocalDate.now());
         return dataRequestRepository.save(request);
     }
 
@@ -111,72 +107,127 @@ public class RequestImpl implements RequestService {
 
     @Override
     public List<Answer> getAnswersByQuestion(Long questionId) {
-        return answerRepository.findByQuestion_User_UserId(questionId);
+        return answerRepository.findByQuestion_QuestionId(questionId);
     }
 
 
     @Override
     @Transactional
-    public DataRequest updateRequest(Long requestId, DataRequest updatedRequest) {
+    public DataRequest updateRequest(Long requestId, DataRequestUpdateDto updatedRequest, User actor) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
 
-        request.setPurpose(updatedRequest.getPurpose());
-        request.setTitle(updatedRequest.getTitle());
-        request.setContent(updatedRequest.getContent());
-        request.setFileUrl(updatedRequest.getFileUrl());
-        request.setOrganization(updatedRequest.getOrganization());
+        // 부분 수정 바디로 나머지 필드가 null 로 지워지지 않도록 넘어온 값만 반영한다
+        if (updatedRequest.getPurpose() != null) request.setPurpose(updatedRequest.getPurpose());
+        if (updatedRequest.getTitle() != null) request.setTitle(updatedRequest.getTitle());
+        if (updatedRequest.getContent() != null) request.setContent(updatedRequest.getContent());
+        if (updatedRequest.getOrganization() != null) request.setOrganization(updatedRequest.getOrganization());
         return dataRequestRepository.save(request);
     }
 
     @Override
     @Transactional
-    public void deleteRequest(Long requestId) {
-        dataRequestRepository.deleteById(requestId);
+    public void deleteRequest(Long requestId, User actor) {
+        DataRequest request = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
+        // DB 행만 지우면 pending/ 에 올라간 파일이 참조 없이 남는다
+        if (request.getFileUrl() != null) {
+            s3Storage.deleteFileByKey(s3Storage.extractKeyFromAnyUrl(request.getFileUrl()));
+        }
+        dataRequestRepository.delete(request);
     }
 
     @Override
     @Transactional
-    public Question createQuestion(Question question) {
+    public Question createQuestion(User author, QuestionRequestDto request) {
+        Question question = new Question();
+        question.setUser(author);
+        question.setContent(requireContent(request.getContent()));
+        question.setCreateDate(LocalDate.now());
         return questionRepository.save(question);
     }
 
     @Override
     @Transactional
-    public Question updateQuestion(Long questionId, Question updatedQuestion) {
+    public Question updateQuestion(Long questionId, QuestionRequestDto request, User actor) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        assertCanModify(actor, question.getUser());
 
-        question.setContent(updatedQuestion.getContent());
+        question.setContent(requireContent(request.getContent()));
         return questionRepository.save(question);
     }
 
-    @Override
-    @Transactional
-    public void deleteQuestion(Long questionId) {
-        questionRepository.deleteById(questionId);
+    /** 빈 본문이 그대로 저장되거나 기존 본문을 null 로 지우지 않도록 막는다(400). */
+    private String requireContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("내용을 입력해주세요.");
+        }
+        return content;
     }
 
     @Override
     @Transactional
-    public Answer createAnswer(Answer answer) {
+    public void deleteQuestion(Long questionId, User actor) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        assertCanModify(actor, question.getUser());
+        questionRepository.delete(question);
+    }
+
+    @Override
+    @Transactional
+    public Answer createAnswer(User author, AnswerRequestDto request) {
+        // 옛 바디 형태({"question":{"questionId":n}})로 오면 여기가 null 이다. findById(null) 은 500 이 되므로 400 으로 돌린다.
+        if (request.getQuestionId() == null) {
+            throw new IllegalArgumentException("questionId 가 필요합니다.");
+        }
+        Question question = questionRepository.findById(request.getQuestionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+
+        Answer answer = new Answer();
+        answer.setQuestion(question);
+        answer.setUser(author);
+        answer.setContent(requireContent(request.getContent()));
+        answer.setCreateDate(LocalDate.now());
         return answerRepository.save(answer);
     }
 
     @Override
     @Transactional
-    public Answer updateAnswer(Long answerId, Answer updatedAnswer) {
+    public Answer updateAnswer(Long answerId, AnswerRequestDto request, User actor) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
+        assertCanModify(actor, answer.getUser());
 
-        answer.setContent(updatedAnswer.getContent());
+        answer.setContent(requireContent(request.getContent()));
         return answerRepository.save(answer);
     }
 
     @Override
     @Transactional
-    public void deleteAnswer(Long answerId) {
-        answerRepository.deleteById(answerId);
+    public void deleteAnswer(Long answerId, User actor) {
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new ResourceNotFoundException("답변을 찾을 수 없습니다"));
+        assertCanModify(actor, answer.getUser());
+        answerRepository.delete(answer);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void verifyRequestAccess(Long requestId, User actor) {
+        DataRequest request = dataRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
+        assertCanModify(actor, request.getUser());
+    }
+
+    /** 작성자 본인 또는 관리자만 수정·삭제할 수 있다. */
+    private void assertCanModify(User actor, User owner) {
+        if (actor == null || owner == null || !(actor.isAdmin() || owner.getUserId().equals(actor.getUserId()))) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
     }
 
     @Override

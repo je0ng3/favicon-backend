@@ -1,7 +1,7 @@
 package com.capstone.favicon.aws;
 
-import com.capstone.favicon.config.S3Config;
 import com.capstone.favicon.dataset.domain.Dataset;
+import com.capstone.favicon.infrastructure.s3.S3Storage;
 import com.capstone.favicon.dataset.domain.DatasetTheme;
 import com.capstone.favicon.dataset.domain.Resource;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
@@ -9,7 +9,6 @@ import com.capstone.favicon.dataset.repository.DatasetThemeRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
 import com.capstone.favicon.dataset.repository.ResourceRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.capstone.favicon.dataset.domain.FileExtension;
@@ -22,13 +21,13 @@ import java.util.Optional;
 
 @Service
 public class S3MetadataSyncService {
-    private final S3Config s3Config;
+    private final S3Storage s3Storage;
     private final DatasetRepository datasetRepository;
     private final DatasetThemeRepository datasetThemeRepository;
     private final ResourceRepository resourceRepository;
 
-    public S3MetadataSyncService(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
-        this.s3Config = s3Config;
+    public S3MetadataSyncService(S3Storage s3Storage, DatasetRepository datasetRepository, DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
+        this.s3Storage = s3Storage;
         this.datasetRepository = datasetRepository;
         this.datasetThemeRepository = datasetThemeRepository;
         this.resourceRepository = resourceRepository;
@@ -37,7 +36,7 @@ public class S3MetadataSyncService {
     @Transactional
     @Scheduled(fixedRate = 600000000)
     public void syncS3FilesToDB() {
-        List<String> fileNames = s3Config.listFilesInBucket();
+        List<String> fileNames = s3Storage.listFilesInBucket();
         List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
 
         for (String fileName : fileNames) {
@@ -53,7 +52,7 @@ public class S3MetadataSyncService {
                             metadata.getName(), metadata.getTitle(), metadata.getOrganization(), metadata.getDescription()
                     );
 
-                    LocalDate lastModified = s3Config.getLastModifiedDate(fileName);
+                    LocalDate lastModified = s3Storage.getLastModifiedDate(fileName);
                     dataset.setUpdateDate(lastModified);
                     //dataset.setUpdateDate(LocalDate.now());
                     dataset.setDownload(0);
@@ -66,7 +65,7 @@ public class S3MetadataSyncService {
                     System.out.println("새로운 Dataset 테이블 추가됨: " + metadata.getName());
 
                     String rawFileName = fileName.substring(fileName.lastIndexOf("/") + 1);
-                    String fileUrl = s3Config.generateFileUrl(fileName);
+                    String fileUrl = s3Storage.generateFileUrl(fileName);
                     System.out.println("[디버깅] Resource 저장 시도 - dataset: " + datasetToUse.getName() + ", resourceName: " + rawFileName + ", url: " + fileUrl);
                     Resource newResource = new Resource(datasetToUse, rawFileName, FileExtension.CSV, fileUrl);
                     resourceRepository.save(newResource);
@@ -79,7 +78,7 @@ public class S3MetadataSyncService {
                     if (optionalResourceFromDB.isPresent()) {
                         System.out.println("[정보] Resource 이미 존재함: " + rawFileName);
                     } else {
-                        String fileUrl = s3Config.generateFileUrl(fileName);
+                        String fileUrl = s3Storage.generateFileUrl(fileName);
                         Resource newResource = new Resource(datasetToUse, rawFileName, FileExtension.CSV, fileUrl);
                         resourceRepository.save(newResource);
                         System.out.println("[정보] 기존 Dataset에 새로운 Resource 저장: " + rawFileName);

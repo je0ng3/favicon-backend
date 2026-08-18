@@ -1,10 +1,11 @@
-package com.capstone.favicon.config;
+package com.capstone.favicon.infrastructure.s3;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -21,14 +22,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class S3Config {
+public class S3Storage {
     protected final S3Client s3Client;
     private final String region;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public S3Config(
+    public S3Storage(
             @Value("${aws.s3.region}") String region,
             @Value("${aws.s3.access-key}") String accessKey,
             @Value("${aws.s3.secret-key}") String secretKey) {
@@ -148,8 +149,16 @@ public class S3Config {
         return key.substring(key.lastIndexOf("/")+1);
     }
 
-    protected String encodeFileName(String fileName) throws UnsupportedEncodingException {
+    public String encodeFileName(String fileName) throws UnsupportedEncodingException {
         return URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+    }
+
+    /** 버킷 안의 객체를 스트림으로 연다. s3Client 를 밖으로 내보내지 않기 위한 통로. */
+    public ResponseInputStream<GetObjectResponse> getObject(String key) {
+        return s3Client.getObject(GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build());
     }
 
     public String generateFileUrl(String fileName) {

@@ -46,7 +46,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME}}
-          password: ${{ vars.DOCKERHUB_PASSWORD}}
+          password: ${{ secrets.DOCKERHUB_PASSWORD}}
 
       # jar COPY 이전 레이어(베이스 이미지, yum install)를 GitHub Actions 캐시에 보관해
       # 매 빌드마다 다시 받지 않도록 한다

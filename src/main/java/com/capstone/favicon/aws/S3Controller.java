@@ -1,7 +1,7 @@
 package com.capstone.favicon.aws;
 
-import com.capstone.favicon.config.S3Config;
 import com.capstone.favicon.config.exception.ResourceNotFoundException;
+import com.capstone.favicon.infrastructure.s3.S3Storage;
 import com.capstone.favicon.dataset.domain.Dataset;
 import com.capstone.favicon.dataset.domain.FileExtension;
 import com.capstone.favicon.dataset.repository.DatasetRepository;
@@ -12,7 +12,6 @@ import com.capstone.favicon.dataset.repository.ResourceRepository;
 import com.capstone.favicon.aws.MetadataParser.DatasetMetadata;
 import com.capstone.favicon.config.APIResponse;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,14 +24,14 @@ import java.util.List;
 @RequestMapping("/s3")
 public class S3Controller {
 
-    private final S3Config s3Config;
+    private final S3Storage s3Storage;
     private final DatasetRepository datasetRepository;
     private final DatasetThemeRepository datasetThemeRepository;
     private final ResourceRepository resourceRepository;
 
-    public S3Controller(@Qualifier("s3Config") S3Config s3Config, DatasetRepository datasetRepository,
+    public S3Controller(S3Storage s3Storage, DatasetRepository datasetRepository,
                         DatasetThemeRepository datasetThemeRepository, ResourceRepository resourceRepository) {
-        this.s3Config = s3Config;
+        this.s3Storage = s3Storage;
         this.datasetRepository = datasetRepository;
         this.datasetThemeRepository = datasetThemeRepository;
         this.resourceRepository = resourceRepository;
@@ -47,7 +46,7 @@ public class S3Controller {
 
             String originalFileName = file.getOriginalFilename().trim();
             String directory = "preprocessing";
-            String fileUrl = s3Config.uploadFile(file, directory);
+            String fileUrl = s3Storage.uploadFile(file, directory);
 
             List<DatasetTheme> datasetThemes = datasetThemeRepository.findAll();
             String s3FileName = directory + "/" + originalFileName;
@@ -61,7 +60,7 @@ public class S3Controller {
             Dataset dataset = datasetRepository
                     .findByDatasetThemeAndNameAndOrganization(datasetTheme, metadata.getName(), metadata.getOrganization())
                     .orElseGet(() -> {
-                        LocalDate lastModified = s3Config.getLastModifiedDate(s3FileName);
+                        LocalDate lastModified = s3Storage.getLastModifiedDate(s3FileName);
                         return datasetRepository.save(new Dataset(
                                 datasetTheme,
                                 metadata.getName(),
@@ -92,7 +91,7 @@ public class S3Controller {
 
         Dataset dataset = resource.getDataset();
 
-        s3Config.deleteFile(resource.getResourceUrl());
+        s3Storage.deleteFile(resource.getResourceUrl());
         dataset.setResource(null);
 
         resourceRepository.delete(resource);
