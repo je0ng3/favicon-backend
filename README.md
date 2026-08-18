@@ -33,44 +33,33 @@
 
 ## 리팩터링
 
-원본 팀 프로젝트(2025년 상반기) 이후, 개인 작업으로 인증 구조와 설정·빌드를 중심으로 리팩터링했습니다.
+원본 팀 프로젝트(2025년 상반기) 이후 개인 작업으로 진행
 
-**세션 → JWT 인증 전환** — 가장 큰 변경
+**인증**
 
-- 세션 기반 로그인을 제거하고 **stateless JWT 인증**으로 전면 교체
-- `JwtUtil` · `UserDetailsService` 구현, `User` 도메인이 `UserDetails`를 구현하도록 변경
-- `JwtAuthenticationFilter` 추가 및 JWT 예외(만료·위조 등) 일관 처리
-- 공개 / 관리자 / 인증 필요 엔드포인트를 `SecurityConfig`로 정리
-- 비밀번호 **BCrypt 해싱** 도입
+- 세션 로그인을 stateless JWT로 교체 — `JwtUtil`·`JwtAuthenticationFilter`·`UserDetailsService`, 비밀번호 BCrypt 해싱
+- 리프레시 토큰을 DB에 저장하고 재발급 시 회전, 무효·만료 토큰은 401
+- URL 권한은 `SecurityConfig`에서, 리소스 소유권(내 글만 수정·삭제)은 서비스 계층에서 검사
 
-**리프레시 토큰 회전(rotation)**
+**API 경계**
 
-- `RefreshToken` 엔티티·리포지토리·서비스·컨트롤러 추가
-- 리프레시 토큰을 DB에 저장하고 재발급 시 **회전(rotate)**, 무효/만료 토큰은 **401** 응답
-- 인증 엔드포인트를 `/auth` 하위로 그룹화
+- 컨트롤러가 엔티티 대신 요청·응답 DTO를 주고받도록 변경 — 응답에 `User`가 딸려 나가 **BCrypt 비밀번호 해시**까지 직렬화되던 문제 해결
+- 작성자·식별자를 요청 바디로 지정하던 경로(타인 명의 작성·덮어쓰기)와, 클라이언트가 보낸 `fileUrl`로 S3의 임의 객체가 삭제되던 경로 차단
+- `@RestControllerAdvice`로 예외 응답을 일원화하고 컨트롤러의 반복 `try/catch` 제거
+- `Utf8Filter`가 모든 응답에 `text/html`을 강제해 REST 응답이 전부 500이던 문제 수정
 
-**중앙집중 예외 처리**
+**구조**
 
-- `@RestControllerAdvice`(`GlobalExceptionHandler`) 도입으로 컨트롤러의 반복 `try/catch` 제거
-- `ResourceNotFoundException` 등 도메인 예외를 일관된 JSON 응답으로 변환
+- `TrendController`의 조회 로직을 서비스로 분리 — 컨트롤러가 리포지토리를 직접 쓰는 곳 제거
+- `config/S3Config` → `infrastructure/s3/S3Storage`로 이동하고 상속을 합성으로 변경(S3 클라이언트 중복 생성 제거)
+- 생성자 주입 통일, 중복·데드 코드 제거
 
-**보안 강화**
+**설정 · 배포 · 테스트**
 
-- 스크랩 조회 NPE 수정, 비인증 데이터 접근 차단
-
-**코드 정리**
-
-- `UserService` 전반 리팩터링, 생성자 주입 방식 통일
-- 중복된 회원 삭제 코드, 미사용 로그아웃·데드 코드 제거
-
-**설정 / 빌드 분리**
-
-- `local` / `prod` 프로파일 분리, 시크릿을 **환경 변수로 외부화**
-- `.gitignore` 정리, CI(GitHub Actions) 워크플로 트리거·배포 단계 정비
-
-**런타임 구성 조정**
-
-- 외부 의존(AWS S3 · OpenAI GPT) 빈을 런타임 등록에서 제외(`@ComponentScan` 필터) — 관련 자격증명 없이도 핵심 API가 구동되도록 함. (아래 [참고](#참고--알려진-특이사항)의 비활성 기능과 연결됩니다.)
+- `local`/`prod` 프로파일 분리, 시크릿을 환경 변수로 외부화
+- 외부 의존(S3·GPT) 빈을 `@ComponentScan` 필터로 제외 — 자격증명 없이도 핵심 API가 구동됨 ([참고](#참고--알려진-특이사항))
+- 배포 후 `/actuator/health`로 검증하고 실패 시 직전 정상 이미지로 자동 롤백, 이미지 태그는 커밋 SHA로 고정
+- JaCoCo 도입, 인증·인가 테스트 38건 추가
 
 
 ## 성능 최적화
@@ -115,14 +104,15 @@
 
 ## 아키텍처
 
-도메인(`dataset`, `user`, `admin`, `aws`)별로 패키지를 나누고, 각 도메인 안에서 `controller → application(service) → domain(entity) → repository`의 계층 구조를 따릅니다.
+도메인(`dataset`, `user`, `admin`)별로 패키지를 나누고, 각 도메인 안에서 `controller → application(service) → domain(entity) → repository`의 계층 구조를 따릅니다. 외부 시스템 연동은 `infrastructure` 아래에 둡니다.
 
 > 요청 처리·데이터 흐름은 [Data Flow 문서 (Notion)](https://petite-ox-5a5.notion.site/Data-Flow-21c045bbe19f80889dcbe0284912d01c)를 참고하세요.
 
 ```
 com.capstone.favicon
 ├── FaviconApplication.java       # 진입점 (@EnableScheduling)
-├── config/                       # CORS, Redis, S3, Security, 공통 응답(APIResponse), UTF-8 필터
+├── config/                       # CORS, Redis, Security, 공통 응답(APIResponse), 인코딩 필터
+├── infrastructure/s3/            # S3 업로드·다운로드 어댑터(S3Storage)
 ├── security/                     # JWT 필터·유틸·예외 처리, UserDetailsService
 ├── dataset/                      # 데이터셋·테마·지역·리소스·트렌드·분석·GPT·S3 다운로드
 │   ├── controller/
@@ -199,6 +189,8 @@ com.capstone.favicon
 
 ### 데이터 요청 게시판 (전부 🔵 인증 필요)
 
+> 수정·삭제·다운로드는 **작성자 본인 또는 관리자**만 가능하며, 그 외에는 403입니다. 검토 상태 변경(`/request/list/{requestId}/review`)은 **관리자 전용**입니다.
+
 | 메서드 | 경로 | 설명 |
 |:---:|------|------|
 | GET | `/request/list` | 요청글 목록 |
@@ -247,6 +239,7 @@ com.capstone.favicon
 - 로그인 성공 시 발급된 토큰을 `Authorization: Bearer <token>` 헤더로 전달합니다.
 - `JwtAuthenticationFilter`가 토큰을 검증하고, 인증/인가 실패는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 JSON으로 처리합니다.
 - 비밀번호는 `BCryptPasswordEncoder`로 해싱합니다.
+- URL 단위 권한은 `SecurityConfig`에서, **리소스 소유권**(내 글만 수정·삭제)은 서비스 계층에서 검사합니다.
 
 ## 스케줄러
 
@@ -272,6 +265,8 @@ com.capstone.favicon
 **`local` 프로파일**: `LOCAL_DB_URL`, `LOCAL_DB_USERNAME`, `LOCAL_DB_PASSWORD`
 **`prod` 프로파일**: `SPRING_RDS_URL`, `SPRING_RDS_USERNAME`, `SPRING_RDS_PASSWORD`
 
+키 목록은 `.env.example`에 있습니다. 배포 워크플로는 컨테이너를 띄우기 전에 호스트의 `.env`가 이 키를 모두 갖고 있는지 검사합니다.
+
 ## 빌드 & 실행
 
 **요구 사항**: JDK 17, PostgreSQL, Redis. 위 환경 변수 설정 필요.
@@ -280,6 +275,12 @@ com.capstone.favicon
 
 ```bash
 ./gradlew bootRun
+```
+
+**테스트 · 커버리지**
+
+```bash
+./gradlew test         # 리포트: build/reports/jacoco/test/html/index.html
 ```
 
 **JAR 빌드**
@@ -298,10 +299,10 @@ java -jar build/libs/app.jar
 docker build -t favicon-backend .
 ```
 
-`docker-compose.yml`은 Redis와 백엔드(8080 포트)를 함께 띄웁니다.
+`docker-compose.yml`은 Redis와 백엔드(8080 포트)를 함께 띄웁니다. 이미지 태그는 기본값 없이 명시해야 합니다(롤백한 이미지가 `latest`로 되살아나는 것을 막기 위함).
 
 ```bash
-docker compose up -d
+IMAGE_NAME=<dockerhub-user>/erica-favicon IMAGE_TAG=<commit-sha> docker compose --env-file .env up -d
 ```
 
 > 빌드·배포 파이프라인은 [CI/CD 문서 (Notion)](https://petite-ox-5a5.notion.site/CI-CD-218045bbe19f8083b44cd1b4a7c77b0f)를 참고하세요.
@@ -317,4 +318,5 @@ docker compose up -d
 
 - **포크 프로젝트** — 원본은 [favicon-data/back](https://github.com/favicon-data/back)이며, 본 저장소는 리팩터링 버전입니다.
 - **현재 빌드에서 비활성화된 기능** — `FaviconApplication`의 `@ComponentScan`이 `aws` 패키지 전체와 `GPTController`를 제외하고 있어, **S3 업로드/삭제·메타데이터 동기화**(`/s3/**`)와 **GPT 챗**(`/gpt/chat`)은 현재 빈으로 등록되지 않습니다. 활성화하려면 제외 필터를 풀어야 합니다.
+- **헬스체크** — 배포 검증용으로 `/actuator/health`만 인증 없이 열려 있고, 상세 정보는 노출하지 않습니다(`show-details=never`).
 - 루트의 `기후_강수_기상청.csv`는 샘플 데이터 파일입니다.
