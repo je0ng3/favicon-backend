@@ -77,6 +77,10 @@ public class RequestServiceImpl implements RequestService {
     public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status, User reviewer) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾지 못했습니다"));
+        // 심사가 끝난 요청을 다시 심사하면 preprocessing/ 으로 옮겨 둔 파일을 지우거나 자기 자신에 copy 하게 된다
+        if (request.getReviewStatus() != DataRequest.ReviewStatus.PENDING) {
+            throw new IllegalArgumentException("이미 심사가 끝난 요청입니다.");
+        }
 
         String fileUrl = request.getFileUrl();
         if (fileUrl != null) {
