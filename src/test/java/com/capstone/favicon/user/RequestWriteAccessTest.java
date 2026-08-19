@@ -170,6 +170,19 @@ class RequestWriteAccessTest {
     }
 
     @Test
+    void alreadyReviewedRequestCannotBeReviewedAgain() throws Exception {
+        // 재심사는 preprocessing/ 으로 옮긴 승인 파일을 지우거나 자기 자신에 copy 하게 되므로 400 으로 막는다
+        DataRequest approved = dataRequestRepository.findById(dataRequestId).orElseThrow();
+        approved.setReviewStatus(DataRequest.ReviewStatus.APPROVED);
+        dataRequestRepository.save(approved);
+
+        mockMvc.perform(put("/request/list/{id}/review", dataRequestId)
+                        .param("status", "REJECTED")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void reviewEndpointIsAdminOnly() throws Exception {
         // 심사는 S3 파일 이동·삭제를 일으키므로 일반 사용자가 호출할 수 없어야 한다
         mockMvc.perform(put("/request/list/{id}/review", 1L)

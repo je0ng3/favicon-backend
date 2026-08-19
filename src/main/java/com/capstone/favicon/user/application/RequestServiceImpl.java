@@ -58,16 +58,18 @@ public class RequestServiceImpl implements RequestService {
         dataRequest.setTitle(dataRequestDto.getTitle());
         dataRequest.setContent(dataRequestDto.getContent());
         dataRequest.setUploadDate(LocalDate.now());
-        try {
-            String uploadedUrl = s3Storage.uploadFile(dataRequestDto.getFile(), "pending");
-            dataRequest.setFileUrl(uploadedUrl);
-        } catch (IOException e) {
-            throw new RuntimeException("s3에 업로드 실패", e);
-        }
         dataRequest.setOrganization(dataRequestDto.getOrganization());
         dataRequest.setReviewStatus(DataRequest.ReviewStatus.PENDING);
 
-        return dataRequestRepository.save(dataRequest);
+        // 키를 요청 ID 로 나눠 둬야 같은 이름의 파일을 올린 다른 요청과 한 객체를 공유하지 않는다
+        // (공유하면 한쪽 요청을 지울 때 다른 쪽 파일까지 사라진다). ID 가 필요하므로 먼저 저장한다.
+        DataRequest saved = dataRequestRepository.save(dataRequest);
+        try {
+            saved.setFileUrl(s3Storage.uploadFile(dataRequestDto.getFile(), "pending/" + saved.getDataRequestId()));
+        } catch (IOException e) {
+            throw new RuntimeException("s3에 업로드 실패", e);
+        }
+        return dataRequestRepository.save(saved);
     }
 
     @Override
@@ -75,6 +77,10 @@ public class RequestServiceImpl implements RequestService {
     public DataRequest updateReviewStatus(Long requestId, DataRequest.ReviewStatus status, User reviewer) {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾지 못했습니다"));
+        // 심사가 끝난 요청을 다시 심사하면 preprocessing/ 으로 옮겨 둔 파일을 지우거나 자기 자신에 copy 하게 된다
+        if (request.getReviewStatus() != DataRequest.ReviewStatus.PENDING) {
+            throw new IllegalArgumentException("이미 심사가 끝난 요청입니다.");
+        }
 
         String fileUrl = request.getFileUrl();
         if (fileUrl != null) {
@@ -83,8 +89,8 @@ public class RequestServiceImpl implements RequestService {
             System.out.println("추출된 파일명: " + s3Storage.extractFileNameFromKey(key));
 
             if (status == DataRequest.ReviewStatus.APPROVED) {
-                // 승인시 preprocessing 폴더로 이동(테스트 완료)
-                String newKey = "preprocessing/" + s3Storage.extractFileNameFromKey(key);
+                // 승인시 preprocessing 폴더로 이동. 여기서도 요청 ID 로 나눠야 같은 이름의 다른 승인 파일을 덮어쓰지 않는다
+                String newKey = "preprocessing/" + requestId + "/" + s3Storage.extractFileNameFromKey(key);
                 s3Storage.moveFile(key, newKey);
                 request.setFileUrl(s3Storage.generateFileUrl(newKey));
 
@@ -132,8 +138,9 @@ public class RequestServiceImpl implements RequestService {
         DataRequest request = dataRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다"));
         assertCanModify(actor, request.getUser());
-        // DB 행만 지우면 pending/ 에 올라간 파일이 참조 없이 남는다
-        if (request.getFileUrl() != null) {
+        // DB 행만 지우면 pending/ 에 올라간 파일이 참조 없이 남는다. 반대로 승인된 요청의 파일은
+        // preprocessing/ 으로 옮겨져 데이터셋이 참조하므로 글만 지우고 파일은 건드리지 않는다.
+        if (request.getReviewStatus() == DataRequest.ReviewStatus.PENDING && request.getFileUrl() != null) {
             s3Storage.deleteFileByKey(s3Storage.extractKeyFromAnyUrl(request.getFileUrl()));
         }
         dataRequestRepository.delete(request);
