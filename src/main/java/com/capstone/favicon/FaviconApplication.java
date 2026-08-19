@@ -11,7 +11,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.REGEX,
                 pattern = {"com\\.capstone\\.favicon\\.aws\\..*",
-                            "com\\.capstone\\.favicon\\.dataset\\.controller\\.GPTController"}
+                            "com\\.capstone\\.favicon\\.dataset\\.controller\\.GPTController",
+                            // 배포 이미지에 파이썬 런타임/스크립트가 없어 호출 시 무조건 실패한다
+                            "com\\.capstone\\.favicon\\.dataset\\.controller\\.AnalysisController"}
         )
 )
 @EnableScheduling

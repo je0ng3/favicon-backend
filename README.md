@@ -57,7 +57,7 @@
 **설정 · 배포 · 테스트**
 
 - `local`/`prod` 프로파일 분리, 시크릿을 환경 변수로 외부화
-- 외부 의존(S3·GPT) 빈을 `@ComponentScan` 필터로 제외 — 자격증명 없이도 핵심 API가 구동됨 ([참고](#참고--알려진-특이사항))
+- 외부 의존(S3·GPT·파이썬 분석) 빈을 `@ComponentScan` 필터로 제외 — 자격증명·외부 런타임 없이도 핵심 API가 구동됨 ([참고](#참고--알려진-특이사항))
 - 배포 후 `/actuator/health`로 검증하고 실패 시 직전 정상 이미지로 자동 롤백, 이미지 태그는 커밋 SHA로 고정
 - JaCoCo 도입, 인증·인가 테스트 38건 추가
 
@@ -96,11 +96,11 @@
 | **JWT (jjwt) + Spring Security** | stateless 인증. HS256 대칭키 서명, Access 1시간 / Refresh 7일, `userId`·`email` 클레임. 요청마다 Bearer 토큰을 검증해 `SecurityContext` 설정 | 서버 세션을 없애 **수평 확장**에 유리하고, SPA 프론트엔드와 토큰 기반으로 연동하기 깔끔함 (세션 기반에서 [리팩터링](#리팩터링)으로 전환) |
 | **AWS S3** | 데이터셋 파일·요청 첨부파일을 객체로 저장하고 버퍼 단위 **스트리밍** 업로드/다운로드 | 대용량 파일을 앱 서버·DB와 분리해 보관·배포. 객체 스토리지의 본래 용도에 부합 |
 | **WebClient** (spring-webflux) | OpenAI Chat API를 호출하는 HTTP 클라이언트 (`.block()`으로 동기 사용, 빈으로 1회 생성해 재사용) | 외부 REST API 호출용 모던 HTTP 클라이언트로 사용. ※ 리액티브 서버가 아니라 **WebClient만** 쓰는 용도이며, 서버 자체는 Spring MVC(서블릿) 스택 |
-| **Python** (ProcessBuilder) | 데이터 분석을 `analysis.py` 별도 프로세스로 실행하고 stdout의 JSON을 Jackson으로 파싱 | 데이터 분석은 **Python 생태계**가 강점이라 분석은 Python에 맡기고 Java는 오케스트레이션·API 제공에 집중 (Dockerfile이 `python3`를 포함하는 이유) |
+| **Python** (ProcessBuilder) | 데이터 분석을 `analysis.py` 별도 프로세스로 실행하고 stdout의 JSON을 Jackson으로 파싱 | 데이터 분석은 **Python 생태계**가 강점이라 분석은 Python에 맡기고 Java는 오케스트레이션·API 제공에 집중. ※ 스크립트가 저장소에 없어 **현재 빌드에서는 비활성** ([참고](#참고--알려진-특이사항)) |
 | **Thymeleaf + Spring Mail** | 인증 메일 본문을 `email.html` 템플릿에 코드 변수를 바인딩해 렌더링한 뒤 HTML 메일로 발송 | 메일 HTML을 문자열로 조합하지 않고 **템플릿 + 변수**로 분리해 유지보수성↑ |
 | **springdoc (Swagger)** | 실행 중 API 문서 자동 생성·탐색 | 컨트롤러로부터 OpenAPI 문서를 자동화해 프론트엔드와의 API 협업을 쉽게 |
 | **Lombok** | 엔티티·서비스의 getter·setter·생성자·로거 보일러플레이트 제거 | 반복 코드를 줄여 도메인 로직에 집중 |
-| **Docker (Amazon Corretto 17)** | `app.jar` + `python3` 런타임을 한 이미지로 패키징하고 compose로 Redis와 함께 구동 | 실행 환경(JVM·Python·의존성)을 일관되게 배포 |
+| **Docker (Amazon Corretto 17)** | `app.jar`을 이미지로 패키징하고 compose로 Redis와 함께 구동 | 실행 환경(JVM·의존성)을 일관되게 배포 |
 
 ## 아키텍처
 
@@ -166,7 +166,7 @@ com.capstone.favicon
 | 🟢 | POST | `/data-set/incrementDownload/{datasetId}` | 다운로드 횟수 +1 |
 | 🟢 | GET | `/data-set/download/{datasetId}` | S3에서 파일 다운로드 |
 | 🟢 | GET | `/region` | 전체 지역명 목록 |
-| 🟢 | POST | `/analysis` | 데이터 분석 실행 |
+| 🟢 | POST | `/analysis` | 데이터 분석 실행 *(현재 빌드 비활성, 아래 참고)* |
 | 🟢 | GET | `/trend/daily` | 특정 일자 트렌드 순위 |
 | 🟢 | GET | `/trend/{datasetId}` | 데이터셋 기간별 트렌드 추이 |
 | 🟢 | GET | `/trend/rank/{datasetId}` | 데이터셋 현재 순위 |
@@ -292,7 +292,7 @@ java -jar build/libs/app.jar
 
 **Docker**
 
-`Dockerfile`은 `build/libs/app.jar`을 Amazon Corretto 17 이미지에 담아 실행합니다(데이터 분석용 `python3` 포함). 먼저 JAR을 빌드한 뒤 이미지를 만듭니다.
+`Dockerfile`은 `build/libs/app.jar`을 Amazon Corretto 17 이미지에 담아 실행합니다. 먼저 JAR을 빌드한 뒤 이미지를 만듭니다.
 
 ```bash
 ./gradlew bootJar
@@ -317,5 +317,6 @@ IMAGE_NAME=<dockerhub-user>/erica-favicon IMAGE_TAG=<commit-sha> docker compose 
 ## 참고 / 알려진 특이사항
 
 - **포크 프로젝트** — 원본은 [favicon-data/back](https://github.com/favicon-data/back)이며, 본 저장소는 리팩터링 버전입니다.
-- **현재 빌드에서 비활성화된 기능** — `FaviconApplication`의 `@ComponentScan`이 `aws` 패키지 전체와 `GPTController`를 제외하고 있어, **S3 업로드/삭제·메타데이터 동기화**(`/s3/**`)와 **GPT 챗**(`/gpt/chat`)은 현재 빈으로 등록되지 않습니다. 활성화하려면 제외 필터를 풀어야 합니다.
+- **현재 빌드에서 비활성화된 기능** — `FaviconApplication`의 `@ComponentScan`이 `aws` 패키지 전체와 `GPTController`, `AnalysisController`를 제외하고 있어, **S3 업로드/삭제·메타데이터 동기화**(`/s3/**`)와 **GPT 챗**(`/gpt/chat`), **분석**(`/analysis`)은 현재 빈으로 등록되지 않습니다. 활성화하려면 제외 필터를 풀어야 합니다.
+- **분석 기능의 파이썬 의존성** — `AnalysisServiceImpl`은 작업 디렉터리 기준 `venv/bin/python3 analysis.py`를 실행하지만, 그 스크립트와 venv 는 저장소에도 배포 이미지에도 없습니다(2025-04-09 `4dd35b4` 에서 저장소 밖으로 빠짐). 되살리려면 스크립트 복원과 이미지 내 파이썬 환경 구성이 함께 필요합니다.
 - **헬스체크** — 배포 검증용으로 `/actuator/health`만 인증 없이 열려 있고, 상세 정보는 노출하지 않습니다(`show-details=never`).
