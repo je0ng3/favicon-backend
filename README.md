@@ -319,4 +319,3 @@ IMAGE_NAME=<dockerhub-user>/erica-favicon IMAGE_TAG=<commit-sha> docker compose 
 - **포크 프로젝트** — 원본은 [favicon-data/back](https://github.com/favicon-data/back)이며, 본 저장소는 리팩터링 버전입니다.
 - **현재 빌드에서 비활성화된 기능** — `FaviconApplication`의 `@ComponentScan`이 `aws` 패키지 전체와 `GPTController`를 제외하고 있어, **S3 업로드/삭제·메타데이터 동기화**(`/s3/**`)와 **GPT 챗**(`/gpt/chat`)은 현재 빈으로 등록되지 않습니다. 활성화하려면 제외 필터를 풀어야 합니다.
 - **헬스체크** — 배포 검증용으로 `/actuator/health`만 인증 없이 열려 있고, 상세 정보는 노출하지 않습니다(`show-details=never`).
-- 루트의 `기후_강수_기상청.csv`는 샘플 데이터 파일입니다.
