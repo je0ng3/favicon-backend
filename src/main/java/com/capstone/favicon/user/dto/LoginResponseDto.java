@@ -6,13 +6,12 @@ import lombok.Getter;
 public class LoginResponseDto {
     private Long userId;
     private String username;
+    /** 세션 ID. 이후 요청에 Authorization: Bearer 로 실어 보낸다. */
     private String token;
-    private String refresh;
 
-    public LoginResponseDto(Long userId, String username, String token, String refresh) {
+    public LoginResponseDto(Long userId, String username, String token) {
         this.userId = userId;
         this.username = username;
         this.token = token;
-        this.refresh = refresh;
     }
 }

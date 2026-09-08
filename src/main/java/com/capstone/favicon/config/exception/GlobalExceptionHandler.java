@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,6 +45,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<APIResponse<?>> handleAccessDenied(AccessDeniedException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(APIResponse.errorAPI(e.getMessage()));
+    }
+
+    /**
+     * Redis 장애 → 503. 서버 사정이지 요청 잘못이 아니므로 500 으로 뭉뚱그리지 않는다.
+     * 세션 조회는 필터 안에서 일어나 여기까지 오지 않으므로 RedisUnavailableFilter 가 같은 응답을 만든다.
+     */
+    @ExceptionHandler({RedisConnectionFailureException.class, QueryTimeoutException.class, RedisSystemException.class})
+    public ResponseEntity<APIResponse<?>> handleRedisUnavailable(RuntimeException e) {
+        log.error("Redis 접근 실패", e);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(APIResponse.errorAPI("일시적으로 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."));
     }
 
     /** @Valid 바디 검증 실패 → 400 (첫 번째 필드 오류 메시지 반환) */

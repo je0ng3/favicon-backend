@@ -2,11 +2,16 @@ services:
   redis:
     image: redis:latest
     container_name: redis
-    ports:
-      - "6379:6379"
+    # 포트 미공개. backend-network 안에서만 접근
     restart: unless-stopped
     command:
+      # Egx: 세션 만료 이벤트, 인덱스 정리에 필요
       - redis-server
+      - --notify-keyspace-events
+      - Egx
+    volumes:
+      # RDB 스냅샷 보존용. 재시작 시 세션 유지
+      - redis-data:/data
     networks:
       - backend-network
 
@@ -30,3 +35,6 @@ services:
 networks:
   backend-network:
     driver: bridge
+
+volumes:
+  redis-data:
