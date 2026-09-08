@@ -1,29 +1,28 @@
 package com.capstone.favicon.config;
 
-import com.capstone.favicon.security.JwtAccessDeniedHandler;
-import com.capstone.favicon.security.JwtAuthenticationEntryPoint;
-import com.capstone.favicon.security.JwtAuthenticationFilter;
-import com.capstone.favicon.security.JwtExceptionHandlerFilter;
+import com.capstone.favicon.security.BearerHttpSessionIdResolver;
+import com.capstone.favicon.security.RestAccessDeniedHandler;
+import com.capstone.favicon.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.savedrequest.NullRequestCache;
+import org.springframework.session.web.http.HttpSessionIdResolver;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-    private final JwtExceptionHandlerFilter jwtExceptionHandlerFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             // 사용자
@@ -59,14 +58,29 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /** 세션 ID 운반 방식. 쿠키로 바꾸려면 CookieHttpSessionIdResolver 로 교체 + CSRF 활성화. */
+    @Bean
+    public HttpSessionIdResolver httpSessionIdResolver() {
+        return new BearerHttpSessionIdResolver();
+    }
+
+    /** 로그인 시 SessionAuthenticator 가 같은 저장소에 쓰도록 명시적으로 노출한다. */
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 세션 ID 를 쿠키가 아닌 Authorization 헤더로 받으므로 CSRF 대상이 아니다
                 .csrf(auth -> auth.disable())
                 .formLogin(auth -> auth.disable())
                 .httpBasic((auth) -> auth.disable())
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository()))
+                // 저장 안 하면 401 마다 리다이렉트용 세션이 새로 만들어져 Redis 에 쌓인다
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
@@ -74,12 +88,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        .accessDeniedHandler(jwtAccessDeniedHandler)
-                )
-
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionHandlerFilter, JwtAuthenticationFilter.class);
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler)
+                );
         return http.build();
     }
 }

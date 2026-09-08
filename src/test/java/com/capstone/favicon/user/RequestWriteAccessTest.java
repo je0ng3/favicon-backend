@@ -1,7 +1,6 @@
 package com.capstone.favicon.user;
 
 import com.capstone.favicon.FaviconApplication;
-import com.capstone.favicon.security.JwtUtil;
 import com.capstone.favicon.user.domain.Answer;
 import com.capstone.favicon.user.domain.DataRequest;
 import com.capstone.favicon.user.domain.Question;
@@ -18,17 +17,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * 쓰기 엔드포인트는 작성자 본인 또는 관리자만 통과해야 한다. 소유권 검사는 URL 패턴이 아니라
- * 서비스 안에 있어서 SecurityConfig 만 봐서는 드러나지 않으므로, 실제 토큰으로 호출해 고정한다.
+ * 서비스 안에 있어서 SecurityConfig 만 봐서는 드러나지 않으므로, 실제 인증 주체로 호출해 고정한다.
  */
 @SpringBootTest(classes = FaviconApplication.class)
 @AutoConfigureMockMvc
@@ -44,6 +46,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "management.health.db.enabled=false",
         "management.health.redis.enabled=false",
         "REDIS_HOST=localhost",
+        // Redis 세션 저장소는 기동 시 실물 연결을 요구한다. MockMvc 는 기본 세션으로 충분
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.session.SessionAutoConfiguration",
         "SPRING_MAIL_USERNAME=test@example.com",
         "SPRING_MAIL_PASSWORD=test",
         "AWS_S3_BUCKET=test-bucket",
@@ -51,15 +55,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "AWS_S3_ACCESS_KEY_ID=test",
         "AWS_S3_SECRET_ACCESS_KEY=test",
         "API_KEY=test",
-        "JWT_SECRET=test-jwt-secret-value-for-request-write-access-test",
         "ADMIN_MAILS=admin@example.com"
 })
 class RequestWriteAccessTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private JwtUtil jwtUtil;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -69,14 +70,14 @@ class RequestWriteAccessTest {
     @Autowired
     private DataRequestRepository dataRequestRepository;
 
-    private String ownerToken;
-    private String otherToken;
-    private String adminToken;
+    private User owner;
+    private User other;
+    private User admin;
     private Long questionId;
     private Long answerId;
     private Long dataRequestId;
 
-    private User user(String email, int role) {
+    private User newUser(String email, int role) {
         User user = new User();
         user.setEmail(email);
         user.setUsername(email);
@@ -87,13 +88,9 @@ class RequestWriteAccessTest {
 
     @BeforeEach
     void setUp() {
-        User owner = user("owner@test.com", 0);
-        User other = user("other@test.com", 0);
-        User admin = user("admin@test.com", 1);
-
-        ownerToken = jwtUtil.createAccessToken(owner);
-        otherToken = jwtUtil.createAccessToken(other);
-        adminToken = jwtUtil.createAccessToken(admin);
+        owner = newUser("owner@test.com", 0);
+        other = newUser("other@test.com", 0);
+        admin = newUser("admin@test.com", 1);
 
         Question question = new Question();
         question.setUser(owner);
@@ -115,57 +112,56 @@ class RequestWriteAccessTest {
         dataRequestId = dataRequestRepository.save(dataRequest).getDataRequestId();
     }
 
-    private org.springframework.test.web.servlet.RequestBuilder updateQuestion(String token, String body) {
+    private MockHttpServletRequestBuilder updateQuestion(User caller, String body) {
         return put("/request/question/{id}", questionId)
-                .header("Authorization", "Bearer " + token)
+                .with(user(caller))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body);
     }
 
     @Test
     void authorCanUpdateOwnQuestion() throws Exception {
-        mockMvc.perform(updateQuestion(ownerToken, "{\"content\":\"내가 고침\"}"))
+        mockMvc.perform(updateQuestion(owner, "{\"content\":\"내가 고침\"}"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void otherUserCannotUpdateSomeoneElsesQuestion() throws Exception {
-        mockMvc.perform(updateQuestion(otherToken, "{\"content\":\"남의 글 고치기\"}"))
+        mockMvc.perform(updateQuestion(other, "{\"content\":\"남의 글 고치기\"}"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void adminCanUpdateSomeoneElsesQuestion() throws Exception {
-        mockMvc.perform(updateQuestion(adminToken, "{\"content\":\"관리자 수정\"}"))
+        mockMvc.perform(updateQuestion(admin, "{\"content\":\"관리자 수정\"}"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void otherUserCannotDeleteSomeoneElsesAnswer() throws Exception {
         mockMvc.perform(delete("/request/answer/{id}", answerId)
-                        .header("Authorization", "Bearer " + otherToken))
+                        .with(user(other)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void authorCanDeleteOwnAnswer() throws Exception {
         mockMvc.perform(delete("/request/answer/{id}", answerId)
-                        .header("Authorization", "Bearer " + ownerToken))
+                        .with(user(owner)))
                 .andExpect(status().isOk());
     }
 
     @Test
     void blankContentIsRejected() throws Exception {
         // 빈 본문이 기존 글을 지우지 않아야 한다
-        mockMvc.perform(updateQuestion(ownerToken, "{\"content\":\"   \"}"))
+        mockMvc.perform(updateQuestion(owner, "{\"content\":\"   \"}"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void otherUserCannotDownloadSomeoneElsesRequestFile() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .get("/request/download/{id}", dataRequestId)
-                        .header("Authorization", "Bearer " + otherToken))
+        mockMvc.perform(get("/request/download/{id}", dataRequestId)
+                        .with(user(other)))
                 .andExpect(status().isForbidden());
     }
 
@@ -178,7 +174,7 @@ class RequestWriteAccessTest {
 
         mockMvc.perform(put("/request/list/{id}/review", dataRequestId)
                         .param("status", "REJECTED")
-                        .header("Authorization", "Bearer " + adminToken))
+                        .with(user(admin)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -187,7 +183,7 @@ class RequestWriteAccessTest {
         // 심사는 S3 파일 이동·삭제를 일으키므로 일반 사용자가 호출할 수 없어야 한다
         mockMvc.perform(put("/request/list/{id}/review", 1L)
                         .param("status", "REJECTED")
-                        .header("Authorization", "Bearer " + otherToken))
+                        .with(user(other)))
                 .andExpect(status().isForbidden());
     }
 }

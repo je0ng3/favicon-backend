@@ -1,14 +1,18 @@
 package com.capstone.favicon.user.controller;
 
 import com.capstone.favicon.config.APIResponse;
+import com.capstone.favicon.security.SessionAuthenticator;
 import com.capstone.favicon.user.application.service.UserService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
 import com.capstone.favicon.user.dto.LoginResponseDto;
-import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final SessionAuthenticator sessionAuthenticator;
 
     @PostMapping("/email-check")
     public ResponseEntity<APIResponse<?>> emailCheck(@RequestBody RegisterDto.checkEmail checkEmail) {
@@ -39,15 +44,24 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto) {
-        LoginResponseDto responseDto = userService.login(loginDto);
+    public ResponseEntity<APIResponse<?>> login(@RequestBody LoginDto loginDto,
+                                                HttpServletRequest request, HttpServletResponse response) {
+        User user = userService.login(loginDto);
+        String sessionId = sessionAuthenticator.startSession(user, request, response);
+        LoginResponseDto responseDto = new LoginResponseDto(user.getUserId(), user.getUsername(), sessionId);
         return ResponseEntity.ok().body(APIResponse.successAPI("Successfully login.", responseDto));
     }
 
+    /** 세션 만료 시각은 요청이 오는 것만으로 연장된다. 여기서는 현재 세션을 확인해 돌려줄 뿐이다. */
     @PostMapping("/refresh")
-    public ResponseEntity<APIResponse<?>> refresh(@RequestBody RefreshRequest request) {
-        LoginResponseDto responseDto = userService.refreshToken(request);
-        return ResponseEntity.ok().body(APIResponse.successAPI("Token refreshed.", responseDto));
+    public ResponseEntity<APIResponse<?>> refresh(HttpServletRequest request,
+                                                  @AuthenticationPrincipal User user) {
+        HttpSession session = request.getSession(false);
+        if (session == null || user == null) {
+            throw new BadCredentialsException("세션이 만료되었습니다. 다시 로그인해주세요.");
+        }
+        LoginResponseDto responseDto = new LoginResponseDto(user.getUserId(), user.getUsername(), session.getId());
+        return ResponseEntity.ok().body(APIResponse.successAPI("Session refreshed.", responseDto));
     }
 
     @DeleteMapping("/delete-account")

@@ -17,6 +17,10 @@ import java.util.List;
 @Table(name = "users")
 public class User implements UserDetails {
 
+    // 세션에 직렬화되어 Redis 에 남는다. 고정하지 않으면 이 클래스를 고치는 순간
+    // 배포 전 세션이 전부 역직렬화 실패(500)한다
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")

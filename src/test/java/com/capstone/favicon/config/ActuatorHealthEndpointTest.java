@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "management.health.redis.enabled=false",
         // 애플리케이션이 요구하는 외부 설정 자리채움
         "REDIS_HOST=localhost",
+        // Redis 세션 저장소는 기동 시 실물 연결을 요구한다. MockMvc 는 기본 세션으로 충분
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.session.SessionAutoConfiguration",
         "SPRING_MAIL_USERNAME=test@example.com",
         "SPRING_MAIL_PASSWORD=test",
         "AWS_S3_BUCKET=test-bucket",
@@ -42,7 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
         "AWS_S3_ACCESS_KEY_ID=test",
         "AWS_S3_SECRET_ACCESS_KEY=test",
         "API_KEY=test",
-        "JWT_SECRET=test-jwt-secret-value-for-actuator-health-endpoint-test",
         "ADMIN_MAILS=admin@example.com"
 })
 class ActuatorHealthEndpointTest {

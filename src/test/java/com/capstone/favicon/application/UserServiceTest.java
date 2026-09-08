@@ -1,16 +1,12 @@
 package com.capstone.favicon.application;
 
-import com.capstone.favicon.security.JwtUtil;
-import com.capstone.favicon.security.RefreshToken;
+import com.capstone.favicon.security.UserSessionRegistry;
 import com.capstone.favicon.user.application.UserServiceImpl;
 import com.capstone.favicon.user.application.service.MailService;
 import com.capstone.favicon.user.application.service.OTPService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.dto.LoginDto;
-import com.capstone.favicon.user.dto.LoginResponseDto;
-import com.capstone.favicon.user.dto.RefreshRequest;
 import com.capstone.favicon.user.dto.RegisterDto;
-import com.capstone.favicon.user.repository.RefreshTokenRepository;
 import com.capstone.favicon.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,20 +19,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 인증 핵심 흐름(로그인, refresh 토큰 재발급/회전)을 외부 의존성 없이 검증하는 단위 테스트.
+ * 인증 핵심 흐름(자격 증명 검증, 탈퇴 시 세션 만료)을 외부 의존성 없이 검증하는 단위 테스트.
  * DB·Redis 를 띄우지 않으므로 CI 의 gradle build 단계에서 가볍게 함께 돈다.
  */
 @ExtendWith(MockitoExtension.class)
@@ -51,9 +42,7 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private JwtUtil jwtUtil;
-    @Mock
-    private RefreshTokenRepository refreshTokenRepository;
+    private UserSessionRegistry userSessionRegistry;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -69,130 +58,60 @@ class UserServiceTest {
         user.setPassword("encoded-pw");
     }
 
+    private LoginDto loginDto(String email, String password) {
+        LoginDto dto = new LoginDto();
+        dto.setEmail(email);
+        dto.setPassword(password);
+        return dto;
+    }
+
     // == 로그인 ==
 
     @Test
-    void login_success_returns_tokens_and_rotates_stored_refresh_token() {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("user@test.com");
-        loginDto.setPassword("raw-pw");
-
+    void login_success_returns_the_authenticated_user() {
         when(userRepository.findByEmail("user@test.com")).thenReturn(user);
         when(passwordEncoder.matches("raw-pw", "encoded-pw")).thenReturn(true);
-        when(jwtUtil.createAccessToken(user)).thenReturn("access-token");
-        when(jwtUtil.createRefreshToken(user)).thenReturn("refresh-token");
 
-        LoginResponseDto response = userService.login(loginDto);
-
-        assertThat(response.getToken()).isEqualTo("access-token");
-        assertThat(response.getRefresh()).isEqualTo("refresh-token");
-        assertThat(response.getUserId()).isEqualTo(1L);
-
-        // 사용자당 1개 유지: 기존 토큰 삭제 후 새 토큰 저장 순서까지 보장
-        ArgumentCaptor<RefreshToken> saved = ArgumentCaptor.forClass(RefreshToken.class);
-        var order = inOrder(refreshTokenRepository);
-        order.verify(refreshTokenRepository).deleteByUserId(1L);
-        order.verify(refreshTokenRepository).save(saved.capture());
-        assertThat(saved.getValue().getToken()).isEqualTo("refresh-token");
-        assertThat(saved.getValue().getUserId()).isEqualTo(1L);
-        assertThat(saved.getValue().getExpiryDate()).isAfter(LocalDateTime.now());
+        assertThat(userService.login(loginDto("user@test.com", "raw-pw"))).isSameAs(user);
     }
 
     @Test
-    void login_with_wrong_password_throws_and_issues_no_token() {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("user@test.com");
-        loginDto.setPassword("wrong-pw");
-
+    void login_with_wrong_password_throws() {
         when(userRepository.findByEmail("user@test.com")).thenReturn(user);
         when(passwordEncoder.matches("wrong-pw", "encoded-pw")).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.login(loginDto))
+        assertThatThrownBy(() -> userService.login(loginDto("user@test.com", "wrong-pw")))
                 .isInstanceOf(BadCredentialsException.class);
-
-        verify(jwtUtil, never()).createAccessToken(any());
-        verify(refreshTokenRepository, never()).save(any());
     }
 
     @Test
     void login_with_unknown_email_throws_same_exception_as_wrong_password() {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("nobody@test.com");
-        loginDto.setPassword("raw-pw");
-
         when(userRepository.findByEmail("nobody@test.com")).thenReturn(null);
 
         // 이메일 존재 여부가 응답으로 구분되지 않도록 동일한 예외를 던진다
-        assertThatThrownBy(() -> userService.login(loginDto))
+        assertThatThrownBy(() -> userService.login(loginDto("nobody@test.com", "raw-pw")))
                 .isInstanceOf(BadCredentialsException.class);
-
-        verify(jwtUtil, never()).createAccessToken(any());
     }
 
-    // == refresh 토큰 재발급 ==
+    // == 탈퇴 ==
 
-    private RefreshToken storedToken(LocalDateTime expiryDate) {
-        return RefreshToken.builder()
-                .id(10L)
-                .userId(1L)
-                .userEmail("user@test.com")
-                .token("old-refresh")
-                .expiryDate(expiryDate)
-                .build();
+    @Test
+    void delete_expires_sessions_before_removing_the_account() {
+        userService.delete(user);
+
+        // 순서가 뒤집히면 그 사이 요청이 이미 지워진 계정으로 인증될 수 있다
+        var order = inOrder(userSessionRegistry, userRepository);
+        order.verify(userSessionRegistry).expireAll("user@test.com");
+        order.verify(userRepository).delete(user);
     }
 
     @Test
-    void refresh_with_valid_token_rotates_to_new_refresh_token() {
-        RefreshRequest request = new RefreshRequest();
-        request.setRefreshToken("old-refresh");
+    void delete_of_unauthenticated_caller_throws_and_touches_nothing() {
+        assertThatThrownBy(() -> userService.delete(null))
+                .isInstanceOf(IllegalArgumentException.class);
 
-        when(refreshTokenRepository.findByToken("old-refresh"))
-                .thenReturn(Optional.of(storedToken(LocalDateTime.now().plusDays(1))));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(jwtUtil.createAccessToken(user)).thenReturn("new-access");
-        when(jwtUtil.createRefreshToken(user)).thenReturn("new-refresh");
-
-        LoginResponseDto response = userService.refreshToken(request);
-
-        assertThat(response.getToken()).isEqualTo("new-access");
-        assertThat(response.getRefresh()).isEqualTo("new-refresh");
-
-        // 회전: 기존 토큰이 삭제되어 재사용이 불가능해야 한다
-        ArgumentCaptor<RefreshToken> saved = ArgumentCaptor.forClass(RefreshToken.class);
-        var order = inOrder(refreshTokenRepository);
-        order.verify(refreshTokenRepository).deleteByUserId(1L);
-        order.verify(refreshTokenRepository).save(saved.capture());
-        assertThat(saved.getValue().getToken()).isEqualTo("new-refresh");
-    }
-
-    @Test
-    void refresh_with_unknown_token_throws() {
-        RefreshRequest request = new RefreshRequest();
-        request.setRefreshToken("forged-refresh");
-
-        when(refreshTokenRepository.findByToken("forged-refresh")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.refreshToken(request))
-                .isInstanceOf(BadCredentialsException.class);
-
-        verify(jwtUtil, never()).createAccessToken(any());
-    }
-
-    @Test
-    void refresh_with_expired_token_deletes_it_and_forces_relogin() {
-        RefreshRequest request = new RefreshRequest();
-        request.setRefreshToken("old-refresh");
-
-        when(refreshTokenRepository.findByToken("old-refresh"))
-                .thenReturn(Optional.of(storedToken(LocalDateTime.now().minusMinutes(1))));
-
-        assertThatThrownBy(() -> userService.refreshToken(request))
-                .isInstanceOf(BadCredentialsException.class);
-
-        // 만료 토큰은 DB 에서도 제거되어 이후 시도 자체가 불가능해야 한다
-        verify(refreshTokenRepository).deleteByUserId(1L);
-        verify(refreshTokenRepository, never()).save(any());
-        verify(jwtUtil, never()).createAccessToken(any());
+        verify(userSessionRegistry, org.mockito.Mockito.never()).expireAll(anyString());
+        verify(userRepository, org.mockito.Mockito.never()).delete(org.mockito.ArgumentMatchers.any());
     }
 
     // == 회원가입 ==
