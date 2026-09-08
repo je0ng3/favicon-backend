@@ -71,8 +71,10 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-account")
-    public ResponseEntity<APIResponse<?>> deleteUser(@AuthenticationPrincipal User user) {
+    public ResponseEntity<APIResponse<?>> deleteUser(@AuthenticationPrincipal User user, HttpServletRequest request) {
         userService.delete(user);
+        // 호출자 본인 세션은 요청 종료 시 저장소에 다시 쓰이므로 여기서 명시적으로 끊는다
+        sessionAuthenticator.endSession(request);
         return ResponseEntity.ok().body(APIResponse.successAPI("탈퇴하였습니다.", null));
     }
 

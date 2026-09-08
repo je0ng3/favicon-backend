@@ -20,17 +20,25 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.MapSession;
 import org.springframework.session.MapSessionRepository;
 import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -68,8 +76,60 @@ class SessionAuthenticationFlowTest {
     @EnableSpringHttpSession
     static class InMemorySessionConfig {
         @Bean
-        MapSessionRepository sessionRepository() {
-            return new MapSessionRepository(new ConcurrentHashMap<>());
+        IndexedMapSessionRepository sessionRepository() {
+            return new IndexedMapSessionRepository();
+        }
+    }
+
+    /**
+     * 운영은 principal 인덱스를 지원하는 RedisIndexedSessionRepository 를 쓴다.
+     * 인덱스 없는 MapSessionRepository 로 두면 UserSessionRegistry 가 통째로 no-op 이 되어
+     * 강제 로그아웃이 안 돼도 테스트가 통과해버린다.
+     */
+    static class IndexedMapSessionRepository
+            implements SessionRepository<MapSession>, FindByIndexNameSessionRepository<MapSession> {
+
+        private final Map<String, Session> sessions = new ConcurrentHashMap<>();
+        private final MapSessionRepository delegate = new MapSessionRepository(sessions);
+
+        @Override
+        public MapSession createSession() {
+            return delegate.createSession();
+        }
+
+        @Override
+        public void save(MapSession session) {
+            delegate.save(session);
+        }
+
+        @Override
+        public MapSession findById(String id) {
+            return delegate.findById(id);
+        }
+
+        @Override
+        public void deleteById(String id) {
+            delegate.deleteById(id);
+        }
+
+        @Override
+        public Map<String, MapSession> findByIndexNameAndIndexValue(String indexName, String indexValue) {
+            if (!PRINCIPAL_NAME_INDEX_NAME.equals(indexName)) {
+                return Collections.emptyMap();
+            }
+            Map<String, MapSession> found = new LinkedHashMap<>();
+            sessions.forEach((id, session) -> {
+                if (indexValue.equals(principalOf(session))) {
+                    found.put(id, (MapSession) session);
+                }
+            });
+            return found;
+        }
+
+        private String principalOf(Session session) {
+            SecurityContext context = session.getAttribute("SPRING_SECURITY_CONTEXT");
+            return context == null || context.getAuthentication() == null
+                    ? null : context.getAuthentication().getName();
         }
     }
 
@@ -83,7 +143,7 @@ class SessionAuthenticationFlowTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private MapSessionRepository sessionRepository;
+    private IndexedMapSessionRepository sessionRepository;
 
     @MockBean
     private S3MetadataSyncService s3MetadataSyncService;
@@ -153,6 +213,32 @@ class SessionAuthenticationFlowTest {
 
         // UserSessionRegistry 가 principal name 으로 세션을 찾으므로 이 값이 email 이어야 한다
         assertThat(context.getAuthentication().getName()).isEqualTo("member@test.com");
+    }
+
+    @Test
+    void deleting_the_account_logs_out_every_device() throws Exception {
+        String phone = login();
+        String laptop = login();
+
+        mockMvc.perform(delete("/users/auth/delete-account").header("Authorization", "Bearer " + phone))
+                .andExpect(status().isOk());
+
+        // 탈퇴한 계정의 principal 은 세션에서 그대로 복원되므로, 세션을 지우지 않으면 계속 인증된다
+        mockMvc.perform(get(PROTECTED_PATH).header("Authorization", "Bearer " + phone))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get(PROTECTED_PATH).header("Authorization", "Bearer " + laptop))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void refresh_returns_the_current_session_and_401_without_one() throws Exception {
+        String sessionId = login();
+
+        mockMvc.perform(post("/users/auth/refresh").header("Authorization", "Bearer " + sessionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token").value(sessionId));
+
+        mockMvc.perform(post("/users/auth/refresh")).andExpect(status().isUnauthorized());
     }
 
     @Test
