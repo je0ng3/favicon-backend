@@ -2,6 +2,7 @@ package com.capstone.favicon.security;
 
 import com.capstone.favicon.FaviconApplication;
 import com.capstone.favicon.aws.S3MetadataSyncService;
+import com.capstone.favicon.user.application.service.RedisService;
 import com.capstone.favicon.user.domain.User;
 import com.capstone.favicon.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,7 +18,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.session.MapSessionRepository;
+import org.springframework.session.Session;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -78,8 +82,13 @@ class SessionAuthenticationFlowTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private MapSessionRepository sessionRepository;
+
     @MockBean
     private S3MetadataSyncService s3MetadataSyncService;
+    @MockBean
+    private RedisService redisService;
 
     private static final String PROTECTED_PATH = "/request/list";
 
@@ -135,5 +144,35 @@ class SessionAuthenticationFlowTest {
     @Test
     void login_issues_a_new_session_id_each_time() throws Exception {
         assertThat(login()).isNotEqualTo(login());
+    }
+
+    @Test
+    void the_session_is_indexed_under_the_email() throws Exception {
+        Session session = sessionRepository.findById(login());
+        SecurityContext context = session.getAttribute("SPRING_SECURITY_CONTEXT");
+
+        // UserSessionRegistry 가 principal name 으로 세션을 찾으므로 이 값이 email 이어야 한다
+        assertThat(context.getAuthentication().getName()).isEqualTo("member@test.com");
+    }
+
+    @Test
+    void a_wrong_password_is_401_and_issues_no_session() throws Exception {
+        mockMvc.perform(post("/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"member@test.com\",\"password\":\"wrong-pw\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void a_redis_failure_inside_a_handler_is_503_not_500() throws Exception {
+        // 세션 조회는 필터라 RedisUnavailableFilter 가 잡지만, OTP 는 핸들러라 advice 가 잡는다
+        org.mockito.Mockito.doThrow(new RedisConnectionFailureException("down"))
+                .when(redisService).setCode(org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.anyString());
+
+        mockMvc.perform(post("/users/auth/email-check")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@test.com\"}"))
+                .andExpect(status().isServiceUnavailable());
     }
 }
