@@ -64,6 +64,12 @@ public class UserController {
         return ResponseEntity.ok().body(APIResponse.successAPI("Session refreshed.", responseDto));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<APIResponse<?>> logout(HttpServletRequest request) {
+        sessionAuthenticator.endSession(request);
+        return ResponseEntity.ok().body(APIResponse.successAPI("Successfully logout.", null));
+    }
+
     @DeleteMapping("/delete-account")
     public ResponseEntity<APIResponse<?>> deleteUser(@AuthenticationPrincipal User user) {
         userService.delete(user);

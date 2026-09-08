@@ -121,6 +121,18 @@ class SessionAuthenticationFlowTest {
     }
 
     @Test
+    void logout_makes_the_session_id_unusable() throws Exception {
+        String sessionId = login();
+
+        mockMvc.perform(post("/users/auth/logout").header("Authorization", "Bearer " + sessionId))
+                .andExpect(status().isOk());
+
+        // JWT 와 달리 서버가 즉시 끊을 수 있어야 한다. 이게 이 방식으로 바꾼 이유다
+        mockMvc.perform(get(PROTECTED_PATH).header("Authorization", "Bearer " + sessionId))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void login_issues_a_new_session_id_each_time() throws Exception {
         assertThat(login()).isNotEqualTo(login());
     }
