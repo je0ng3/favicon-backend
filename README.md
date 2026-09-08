@@ -40,6 +40,7 @@
 - 톰캣 세션 → JWT → Redis 세션(Spring Session)으로 전환, 비밀번호 BCrypt 해싱
 - 세션 ID는 쿠키 대신 `Authorization: Bearer` 헤더로 운반(`BearerHttpSessionIdResolver`)
 - 로그아웃·탈퇴 시 해당 사용자의 모든 세션을 즉시 만료
+- Redis 장애가 500·무한 대기로 나가던 것을 2초 내 503으로 정리, 인증 실패 요청이 세션을 쌓던 문제 차단
 - URL 권한은 `SecurityConfig`에서, 리소스 소유권(내 글만 수정·삭제)은 서비스 계층에서 검사
 
 **API 경계**
@@ -60,7 +61,7 @@
 - `local`/`prod` 프로파일 분리, 시크릿을 환경 변수로 외부화
 - 외부 의존(S3·GPT·파이썬 분석) 빈을 `@ComponentScan` 필터로 제외 — 자격증명·외부 런타임 없이도 핵심 API가 구동됨 ([참고](#참고--알려진-특이사항))
 - 배포 후 `/actuator/health`로 검증하고 실패 시 직전 정상 이미지로 자동 롤백, 이미지 태그는 커밋 SHA로 고정
-- JaCoCo 도입, 인증·인가 테스트 38건 추가
+- JaCoCo 도입, 인증·인가·세션 테스트 추가(총 35건)
 
 
 ## 성능 최적화
@@ -93,7 +94,7 @@
 | 기술 | 이 프로젝트에서의 쓰임 | 선택 이유 |
 |------|----------------------|-----------|
 | **PostgreSQL + JPA** | 데이터셋·테마·리소스·회원·요청 등 다수 엔티티를 FK 연관관계(`@ManyToOne`/`@OneToOne`/`@OneToMany`)·제약(not null·unique)·cascade·orphanRemoval로 매핑 | 엔티티 간 **관계와 참조 무결성·연쇄 삭제**가 도메인의 핵심이라 관계형 DB가 적합. JPA로 객체–테이블 매핑과 연관관계를 선언적으로 표현 |
-| **Redis** | 로그인 세션을 **7일 TTL**로 저장하고, 이메일 인증 OTP(6자리)는 **3분 TTL**로 임시 저장 후 검증 성공 시 즉시 삭제(1회용) | 짧게 살고 자동 만료돼야 하는 휘발성 데이터에 **키별 TTL**이 그대로 들어맞음. RDB에 넣고 만료를 직접 관리할 필요가 없음 |
+| **Redis** | 로그인 세션을 **7일 TTL**로 저장하고, 이메일 인증 OTP(6자리)는 **3분 TTL**로 임시 저장 후 검증 성공 시 즉시 삭제(1회용) | 짧게 살고 자동 만료돼야 하는 휘발성 데이터에 **키별 TTL**이 그대로 들어맞음. RDB에 넣고 만료를 직접 관리할 필요가 없음. 영속성은 RDB 스냅샷만 쓰고 **AOF는 끔** — 세션은 날아가도 재로그인이면 되지만, AOF는 디스크가 차면 쓰기가 막혀 로그인 자체가 불가능해짐 |
 | **Spring Session + Spring Security** | 세션을 Redis 에 저장하고 세션 ID를 `Authorization: Bearer` 헤더로 주고받음. TTL 7일, 요청마다 자동 연장 | 단일 웹 클라이언트뿐이라 stateless 의 이점이 없던 반면 **로그아웃·강제 만료**가 불가능했음. 서버가 세션을 쥐면 즉시 무효화가 가능하고, 저장소를 Redis 에 두어 톰캣 세션의 한계(재시작 시 유실·확장 불가)를 피함 ([리팩터링](#리팩터링) 참고) |
 | **AWS S3** | 데이터셋 파일·요청 첨부파일을 객체로 저장하고 버퍼 단위 **스트리밍** 업로드/다운로드 | 대용량 파일을 앱 서버·DB와 분리해 보관·배포. 객체 스토리지의 본래 용도에 부합 |
 | **WebClient** (spring-webflux) | OpenAI Chat API를 호출하는 HTTP 클라이언트 (`.block()`으로 동기 사용, 빈으로 1회 생성해 재사용) | 외부 REST API 호출용 모던 HTTP 클라이언트로 사용. ※ 리액티브 서버가 아니라 **WebClient만** 쓰는 용도이며, 서버 자체는 Spring MVC(서블릿) 스택 |
@@ -112,7 +113,7 @@
 ```
 com.capstone.favicon
 ├── FaviconApplication.java       # 진입점 (@EnableScheduling)
-├── config/                       # CORS, Redis, Security, 공통 응답(APIResponse), 인코딩 필터
+├── config/                       # CORS, Redis, Security, 공통 응답(APIResponse), 인코딩·Redis 장애 필터
 ├── infrastructure/s3/            # S3 업로드·다운로드 어댑터(S3Storage)
 ├── security/                     # 세션 인증(생성·만료·헤더 resolver), 예외 처리, UserDetailsService
 ├── dataset/                      # 데이터셋·테마·지역·리소스·트렌드·분석·GPT·S3 다운로드
@@ -241,6 +242,7 @@ com.capstone.favicon
 - 이후 요청은 세션 ID를 `Authorization: Bearer <sessionId>` 헤더로 전달합니다. 쿠키를 쓰지 않으므로 CSRF 대상이 아닙니다.
 - 로그아웃·탈퇴 시 세션을 즉시 삭제하며, 탈퇴는 다른 기기의 세션까지 함께 만료시킵니다.
 - 인증/인가 실패는 `RestAuthenticationEntryPoint`·`RestAccessDeniedHandler`가 처리합니다.
+- **Redis 장애 시 503**을 돌려줍니다(Lettuce 타임아웃 2초). 401이 아닌 이유는 세션 자체는 살아 있을 수 있어 클라이언트가 토큰을 버리면 안 되기 때문입니다. 세션 조회는 `SessionRepositoryFilter` 안에서 일어나 `@RestControllerAdvice`가 닿지 않으므로 `RedisUnavailableFilter`가 같은 응답을 만듭니다.
 - 비밀번호는 `BCryptPasswordEncoder`로 해싱합니다.
 - URL 단위 권한은 `SecurityConfig`에서, **리소스 소유권**(내 글만 수정·삭제)은 서비스 계층에서 검사합니다.
 
@@ -322,3 +324,6 @@ IMAGE_NAME=<dockerhub-user>/erica-favicon IMAGE_TAG=<commit-sha> docker compose 
 - **현재 빌드에서 비활성화된 기능** — `FaviconApplication`의 `@ComponentScan`이 `aws` 패키지 전체와 `GPTController`, `AnalysisController`를 제외하고 있어, **S3 업로드/삭제·메타데이터 동기화**(`/s3/**`)와 **GPT 챗**(`/gpt/chat`), **분석**(`/analysis`)은 현재 빈으로 등록되지 않습니다. 활성화하려면 제외 필터를 풀어야 합니다.
 - **분석 기능의 파이썬 의존성** — `AnalysisServiceImpl`은 작업 디렉터리 기준 `venv/bin/python3 analysis.py`를 실행하지만, 그 스크립트와 venv 는 저장소에도 배포 이미지에도 없습니다(2025-04-09 `4dd35b4` 에서 저장소 밖으로 빠짐). 되살리려면 스크립트 복원과 이미지 내 파이썬 환경 구성이 함께 필요합니다.
 - **헬스체크** — 배포 검증용으로 `/actuator/health`만 인증 없이 열려 있고, 상세 정보는 노출하지 않습니다(`show-details=never`).
+- **세션에 저장되는 값** — 인증 principal 로 `User` 엔티티가 통째로 직렬화되어 bcrypt 해시까지 Redis 에 들어갑니다. `@AuthenticationPrincipal User` 사용처가 많아 그대로 두었고, 경량 principal 분리는 후속 과제입니다. 역직렬화 실패로 기존 세션이 500 을 내지 않도록 `serialVersionUID` 는 고정해 두었습니다.
+- **세션 만료** — 7일 TTL 이 요청마다 연장되는 슬라이딩 방식이라 **절대 상한이 없습니다**. 계속 사용 중인 세션은 로그아웃·탈퇴로만 끊깁니다.
+- **쿠키 전환** — `SecurityConfig` 의 `HttpSessionIdResolver` 빈을 `CookieHttpSessionIdResolver` 로 바꾸면 쿠키 방식이 됩니다. 이때는 CSRF 를 함께 켜야 합니다.
