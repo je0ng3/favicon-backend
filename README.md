@@ -1,6 +1,6 @@
 # Favicon Backend
 
-공공·통계 데이터셋 포털 **Favicon**의 백엔드 API 서버입니다. 데이터셋 검색·테마/지역별 조회·인기 순위, S3 기반 파일 다운로드, JWT 인증과 이메일 OTP 회원 기능, 데이터 요청 게시판, 공지·FAQ·통계 등 관리자 기능, 그리고 데이터 분석·GPT 챗 기능을 REST API로 제공합니다.
+공공·통계 데이터셋 포털 **Favicon**의 백엔드 API 서버입니다. 데이터셋 검색·테마/지역별 조회·인기 순위, S3 기반 파일 다운로드, Redis 세션 인증과 이메일 OTP 회원 기능, 데이터 요청 게시판, 공지·FAQ·통계 등 관리자 기능, 그리고 데이터 분석·GPT 챗 기능을 REST API로 제공합니다.
 
 > [favicon-data/back](https://github.com/favicon-data/back)을 **포크**하여 코드 품질·재사용성·코드 스타일을 개선한 캡스톤(졸업작품) 프로젝트입니다.
 
@@ -37,8 +37,9 @@
 
 **인증**
 
-- 세션 로그인을 stateless JWT로 교체 — `JwtUtil`·`JwtAuthenticationFilter`·`UserDetailsService`, 비밀번호 BCrypt 해싱
-- 리프레시 토큰을 DB에 저장하고 재발급 시 회전, 무효·만료 토큰은 401
+- 톰캣 세션 → JWT → Redis 세션(Spring Session)으로 전환, 비밀번호 BCrypt 해싱
+- 세션 ID는 쿠키 대신 `Authorization: Bearer` 헤더로 운반(`BearerHttpSessionIdResolver`)
+- 로그아웃·탈퇴 시 해당 사용자의 모든 세션을 즉시 만료
 - URL 권한은 `SecurityConfig`에서, 리소스 소유권(내 글만 수정·삭제)은 서비스 계층에서 검사
 
 **API 경계**
@@ -76,7 +77,7 @@
 - **데이터셋** — 전체/상세 조회, 테마·지역·연도·파일유형 필터, 검색·정렬, 인기 Top 9, 다운로드 카운트, 월별 등록 통계.
 - **트렌드** — 다운로드 수 기반 순위를 매일 집계하고 일자·기간별 추이를 제공(전일 대비 상승/하락/유지).
 - **파일 다운로드** — 데이터셋 파일을 AWS S3에서 내려받아 첨부파일로 응답.
-- **회원/인증** — 이메일 OTP 인증 회원가입, 로그인, 계정 탈퇴. JWT 기반 stateless 인증.
+- **회원/인증** — 이메일 OTP 인증 회원가입, 로그인·로그아웃, 계정 탈퇴. Redis 세션 기반 인증.
 - **데이터 요청 게시판** — 요청글 CRUD(파일 첨부), 질문·답변(Q&A), 검토 상태 관리, 요청 통계.
 - **스크랩** — 사용자가 관심 데이터를 스크랩/조회/삭제.
 - **관리자** — 회원 강제 탈퇴, 공지·FAQ 관리, 사용자/데이터 통계.
@@ -85,15 +86,15 @@
 
 ## 기술 스택
 
-`Java 17` · `Spring Boot 3.3.4` · `PostgreSQL` · `Redis` · `Spring Security + JWT (jjwt 0.12.3)` · `AWS S3 (SDK v2)` · `OpenAI` · `springdoc` · `Gradle` · `Docker (Corretto 17)`
+`Java 17` · `Spring Boot 3.3.4` · `PostgreSQL` · `Redis` · `Spring Security + Spring Session (Redis)` · `AWS S3 (SDK v2)` · `OpenAI` · `springdoc` · `Gradle` · `Docker (Corretto 17)`
 
 각 기술의 실제 쓰임과 선택 이유:
 
 | 기술 | 이 프로젝트에서의 쓰임 | 선택 이유 |
 |------|----------------------|-----------|
 | **PostgreSQL + JPA** | 데이터셋·테마·리소스·회원·요청 등 다수 엔티티를 FK 연관관계(`@ManyToOne`/`@OneToOne`/`@OneToMany`)·제약(not null·unique)·cascade·orphanRemoval로 매핑 | 엔티티 간 **관계와 참조 무결성·연쇄 삭제**가 도메인의 핵심이라 관계형 DB가 적합. JPA로 객체–테이블 매핑과 연관관계를 선언적으로 표현 |
-| **Redis** | 이메일 인증 OTP(6자리)를 **3분 TTL**로 임시 저장하고, 검증 성공 시 즉시 삭제(1회용) | 짧게 살고 자동 만료돼야 하는 휘발성 데이터에 **키별 TTL**이 그대로 들어맞음. RDB에 넣고 만료를 직접 관리할 필요가 없음 |
-| **JWT (jjwt) + Spring Security** | stateless 인증. HS256 대칭키 서명, Access 1시간 / Refresh 7일, `userId`·`email` 클레임. 요청마다 Bearer 토큰을 검증해 `SecurityContext` 설정 | 서버 세션을 없애 **수평 확장**에 유리하고, SPA 프론트엔드와 토큰 기반으로 연동하기 깔끔함 (세션 기반에서 [리팩터링](#리팩터링)으로 전환) |
+| **Redis** | 로그인 세션을 **7일 TTL**로 저장하고, 이메일 인증 OTP(6자리)는 **3분 TTL**로 임시 저장 후 검증 성공 시 즉시 삭제(1회용) | 짧게 살고 자동 만료돼야 하는 휘발성 데이터에 **키별 TTL**이 그대로 들어맞음. RDB에 넣고 만료를 직접 관리할 필요가 없음 |
+| **Spring Session + Spring Security** | 세션을 Redis 에 저장하고 세션 ID를 `Authorization: Bearer` 헤더로 주고받음. TTL 7일, 요청마다 자동 연장 | 단일 웹 클라이언트뿐이라 stateless 의 이점이 없던 반면 **로그아웃·강제 만료**가 불가능했음. 서버가 세션을 쥐면 즉시 무효화가 가능하고, 저장소를 Redis 에 두어 톰캣 세션의 한계(재시작 시 유실·확장 불가)를 피함 ([리팩터링](#리팩터링) 참고) |
 | **AWS S3** | 데이터셋 파일·요청 첨부파일을 객체로 저장하고 버퍼 단위 **스트리밍** 업로드/다운로드 | 대용량 파일을 앱 서버·DB와 분리해 보관·배포. 객체 스토리지의 본래 용도에 부합 |
 | **WebClient** (spring-webflux) | OpenAI Chat API를 호출하는 HTTP 클라이언트 (`.block()`으로 동기 사용, 빈으로 1회 생성해 재사용) | 외부 REST API 호출용 모던 HTTP 클라이언트로 사용. ※ 리액티브 서버가 아니라 **WebClient만** 쓰는 용도이며, 서버 자체는 Spring MVC(서블릿) 스택 |
 | **Python** (ProcessBuilder) | 데이터 분석을 `analysis.py` 별도 프로세스로 실행하고 stdout의 JSON을 Jackson으로 파싱 | 데이터 분석은 **Python 생태계**가 강점이라 분석은 Python에 맡기고 Java는 오케스트레이션·API 제공에 집중. ※ 스크립트가 저장소에 없어 **현재 빌드에서는 비활성** ([참고](#참고--알려진-특이사항)) |
@@ -113,7 +114,7 @@ com.capstone.favicon
 ├── FaviconApplication.java       # 진입점 (@EnableScheduling)
 ├── config/                       # CORS, Redis, Security, 공통 응답(APIResponse), 인코딩 필터
 ├── infrastructure/s3/            # S3 업로드·다운로드 어댑터(S3Storage)
-├── security/                     # JWT 필터·유틸·예외 처리, UserDetailsService
+├── security/                     # 세션 인증(생성·만료·헤더 resolver), 예외 처리, UserDetailsService
 ├── dataset/                      # 데이터셋·테마·지역·리소스·트렌드·분석·GPT·S3 다운로드
 │   ├── controller/
 │   ├── application/ (+ service/) # 인터페이스(service/) + 구현(*Impl)
@@ -179,7 +180,8 @@ com.capstone.favicon
 | 🟢 | POST | `/users/email-check` | 가입용 OTP 인증코드 발송 |
 | 🟢 | POST | `/users/code-check` | OTP 인증코드 검증 |
 | 🟢 | POST | `/users/register` | 회원가입 |
-| 🟢 | POST | `/users/login` | 로그인(JWT 발급) |
+| 🟢 | POST | `/users/login` | 로그인(세션 발급) |
+| 🟢* | POST | `/users/logout` | 로그아웃(세션 만료) |
 | 🟢* | DELETE | `/users/delete-account` | 본인 계정 탈퇴 |
 | 🟢* | POST | `/users/scrap/{data-id}` | 데이터 스크랩 추가 |
 | 🟢* | DELETE | `/users/scrap/{scrap-id}` | 스크랩 삭제 |
@@ -235,9 +237,10 @@ com.capstone.favicon
 
 ## 인증 / 인가
 
-- **stateless JWT** — 세션을 쓰지 않고 모든 요청을 토큰으로 인증합니다.
-- 로그인 성공 시 발급된 토큰을 `Authorization: Bearer <token>` 헤더로 전달합니다.
-- `JwtAuthenticationFilter`가 토큰을 검증하고, 인증/인가 실패는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 JSON으로 처리합니다.
+- **Redis 세션** — 로그인 시 세션을 만들어 Redis 에 저장하고(TTL 7일, 요청마다 연장), 세션 ID를 응답 body 로 돌려줍니다.
+- 이후 요청은 세션 ID를 `Authorization: Bearer <sessionId>` 헤더로 전달합니다. 쿠키를 쓰지 않으므로 CSRF 대상이 아닙니다.
+- 로그아웃·탈퇴 시 세션을 즉시 삭제하며, 탈퇴는 다른 기기의 세션까지 함께 만료시킵니다.
+- 인증/인가 실패는 `RestAuthenticationEntryPoint`·`RestAccessDeniedHandler`가 처리합니다.
 - 비밀번호는 `BCryptPasswordEncoder`로 해싱합니다.
 - URL 단위 권한은 `SecurityConfig`에서, **리소스 소유권**(내 글만 수정·삭제)은 서비스 계층에서 검사합니다.
 
@@ -255,7 +258,6 @@ com.capstone.favicon
 |------|------|
 | `ACTIVE` | 활성 프로파일 (`local` 또는 `prod`) |
 | `JPA_DDL` | Hibernate `ddl-auto` 값 (`none`/`update`/`validate` 등) |
-| `JWT_SECRET` | JWT 서명 비밀키 |
 | `API_KEY` | OpenAI API 키 |
 | `REDIS_HOST` | Redis 호스트 (포트 6379 고정) |
 | `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | Gmail SMTP 계정 / 앱 비밀번호 |
